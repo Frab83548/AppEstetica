@@ -1,77 +1,83 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
-import { LoginComponent } from './features/auth/login.component';
-import { ClientesListComponent } from './features/clientes/clientes-list.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { PersonalDetailComponent } from './features/personal/personal-detail.component';
-import { PersonalListComponent } from './features/personal/personal-list.component';
-import { ServicioFormComponent } from './features/servicios/servicio-form.component';
-import { ServiciosListComponent } from './features/servicios/servicios-list.component';
-import { TurnosCalendarComponent } from './features/turnos/turnos-calendar.component';
-import { CobrosListComponent } from './features/cobros/cobros-list.component';
-import { ReportesComponent } from './features/reportes/reportes.component';
-import { MarketingComponent } from './features/marketing/marketing.component';
-import { ConfiguracionComponent } from './features/configuracion/configuracion.component';
-import { MainLayoutComponent } from './layout/main-layout.component';
 
 export const routes: Routes = [
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () =>
+      import('./features/auth/login.component').then((m) => m.LoginComponent),
     canActivate: [guestGuard],
   },
   {
     path: '',
-    component: MainLayoutComponent,
+    loadComponent: () =>
+      import('./layout/main-layout.component').then((m) => m.MainLayoutComponent),
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'turnos', component: TurnosCalendarComponent },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
+      {
+        path: 'turnos',
+        loadComponent: () =>
+          import('./features/turnos/turnos-calendar.component').then((m) => m.TurnosCalendarComponent),
+      },
       {
         path: 'clientes',
-        component: ClientesListComponent,
+        loadComponent: () =>
+          import('./features/clientes/clientes-list.component').then((m) => m.ClientesListComponent),
         canActivate: [roleGuard(['admin', 'recepcion'])],
       },
       {
         path: 'servicios',
-        component: ServiciosListComponent,
+        loadComponent: () =>
+          import('./features/servicios/servicios-list.component').then((m) => m.ServiciosListComponent),
         canActivate: [roleGuard(['admin', 'recepcion'])],
       },
       {
         path: 'servicios/:id',
-        component: ServicioFormComponent,
+        loadComponent: () =>
+          import('./features/servicios/servicio-form.component').then((m) => m.ServicioFormComponent),
         canActivate: [roleGuard(['admin', 'recepcion'])],
       },
       {
         path: 'personal',
-        component: PersonalListComponent,
+        loadComponent: () =>
+          import('./features/personal/personal-list.component').then((m) => m.PersonalListComponent),
         canActivate: [roleGuard(['admin'])],
       },
       {
         path: 'personal/:id',
-        component: PersonalDetailComponent,
+        loadComponent: () =>
+          import('./features/personal/personal-detail.component').then((m) => m.PersonalDetailComponent),
         canActivate: [roleGuard(['admin'])],
       },
       {
         path: 'cobros',
-        component: CobrosListComponent,
+        loadComponent: () =>
+          import('./features/cobros/cobros-list.component').then((m) => m.CobrosListComponent),
         canActivate: [roleGuard(['admin', 'recepcion'])],
       },
       {
         path: 'reportes',
-        component: ReportesComponent,
+        loadComponent: () =>
+          import('./features/reportes/reportes.component').then((m) => m.ReportesComponent),
         canActivate: [roleGuard(['admin', 'recepcion'])],
       },
       {
         path: 'marketing',
-        component: MarketingComponent,
+        loadComponent: () =>
+          import('./features/marketing/marketing.component').then((m) => m.MarketingComponent),
         canActivate: [roleGuard(['admin'])],
       },
       {
         path: 'configuracion',
-        component: ConfiguracionComponent,
+        loadComponent: () =>
+          import('./features/configuracion/configuracion.component').then((m) => m.ConfiguracionComponent),
         canActivate: [roleGuard(['admin'])],
       },
     ],

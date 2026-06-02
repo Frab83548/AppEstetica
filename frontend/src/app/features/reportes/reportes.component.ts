@@ -168,11 +168,11 @@ export class ReportesComponent implements OnInit {
   }
 
   exportPdf(): void {
-    this.exportSvc.exportPdf(this.rows(), 'Reporte_Turnos');
+    void this.exportSvc.exportPdf(this.rows(), 'Reporte_Turnos');
   }
 
   exportExcel(): void {
-    this.exportSvc.exportExcel(this.rows(), 'Reporte_Turnos');
+    void this.exportSvc.exportExcel(this.rows(), 'Reporte_Turnos');
   }
 
   estadoLabel(estado: string): string {

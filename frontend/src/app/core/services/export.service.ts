@@ -1,7 +1,4 @@
 import { Injectable } from '@angular/core';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { TURNO_ESTADO_LABELS } from '../models';
 
 export interface ReporteTurnoRow {
@@ -17,7 +14,13 @@ export interface ReporteTurnoRow {
 
 @Injectable({ providedIn: 'root' })
 export class ExportService {
-  exportPdf(rows: ReporteTurnoRow[], titulo: string): void {
+  async exportPdf(rows: ReporteTurnoRow[], titulo: string): Promise<void> {
+    const [{ default: jsPDF }, autoTableModule] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
+    const autoTable = autoTableModule.default;
+
     const doc = new jsPDF();
     doc.setFontSize(16);
     doc.text(titulo, 14, 18);
@@ -41,7 +44,9 @@ export class ExportService {
     doc.save(`${titulo.replace(/\s+/g, '_')}.pdf`);
   }
 
-  exportExcel(rows: ReporteTurnoRow[], titulo: string): void {
+  async exportExcel(rows: ReporteTurnoRow[], titulo: string): Promise<void> {
+    const XLSX = await import('xlsx');
+
     const data = rows.map((r) => ({
       Fecha: new Date(r.fecha).toLocaleString('es-AR'),
       Cliente: r.cliente,
