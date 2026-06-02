@@ -1,24 +1,44 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { endOfMonth, format, startOfMonth, startOfDay, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { AuthService } from '../../core/services/auth.service';
 import { GcalService } from '../../core/services/gcal.service';
 import { parseRango, TURNO_ESTADO_LABELS, Turno } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 
+interface TopItem {
+  nombre: string;
+  cantidad?: number;
+  visitas?: number;
+}
+
+interface DashboardStats {
+  facturacion_mes: number;
+  turnos_periodo: number;
+  cancelaciones: number;
+  ocupacion_pct: number;
+  servicios_top: TopItem[];
+  profesionales_top: TopItem[];
+  clientes_frecuentes: TopItem[];
+}
+
 @Component({
   selector: 'app-dashboard',
   imports: [
+    CurrencyPipe,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
     MatChipsModule,
+    MatListModule,
     MatProgressSpinnerModule,
     RouterLink,
   ],
@@ -26,7 +46,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
     <div class="page-header">
       <div>
         <h1>Panel</h1>
-        <p class="subtitle">Resumen de turnos de hoy — {{ todayLabel }}</p>
+        <p class="subtitle">{{ todayLabel }} · Mes actual</p>
       </div>
       <a mat-flat-button color="primary" routerLink="/turnos">
         <mat-icon>add</mat-icon>
@@ -42,26 +62,76 @@ import { SupabaseService } from '../../core/services/supabase.service';
           <span class="stat-label">Turnos hoy</span>
         </div>
       </mat-card>
-      <mat-card class="stat-card">
-        <mat-icon>check_circle</mat-icon>
+      <mat-card class="stat-card highlight">
+        <mat-icon>payments</mat-icon>
         <div>
-          <span class="stat-value">{{ confirmados() }}</span>
-          <span class="stat-label">Confirmados</span>
+          <span class="stat-value">{{ stats()?.facturacion_mes | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+          <span class="stat-label">Facturación del mes</span>
         </div>
       </mat-card>
       <mat-card class="stat-card">
-        <mat-icon>schedule</mat-icon>
+        <mat-icon>pie_chart</mat-icon>
         <div>
-          <span class="stat-value">{{ pendientes() }}</span>
-          <span class="stat-label">Pendientes</span>
+          <span class="stat-value">{{ stats()?.ocupacion_pct ?? 0 }}%</span>
+          <span class="stat-label">Ocupación</span>
         </div>
       </mat-card>
       <mat-card class="stat-card">
         <mat-icon>cancel</mat-icon>
         <div>
-          <span class="stat-value">{{ cancelados() }}</span>
-          <span class="stat-label">Cancelados</span>
+          <span class="stat-value">{{ stats()?.cancelaciones ?? 0 }}</span>
+          <span class="stat-label">Cancelaciones (mes)</span>
         </div>
+      </mat-card>
+    </div>
+
+    <div class="charts-grid">
+      <mat-card class="chart-card">
+        <h3>Servicios más vendidos</h3>
+        @if ((stats()?.servicios_top?.length ?? 0) === 0) {
+          <p class="muted">Sin datos en el período</p>
+        } @else {
+          <mat-list>
+            @for (s of stats()?.servicios_top ?? []; track s.nombre) {
+              <mat-list-item>
+                <span matListItemTitle>{{ s.nombre }}</span>
+                <span matListItemLine>{{ s.cantidad }} turnos</span>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <h3>Profesionales más solicitados</h3>
+        @if ((stats()?.profesionales_top?.length ?? 0) === 0) {
+          <p class="muted">Sin datos en el período</p>
+        } @else {
+          <mat-list>
+            @for (p of stats()?.profesionales_top ?? []; track p.nombre) {
+              <mat-list-item>
+                <span matListItemTitle>{{ p.nombre }}</span>
+                <span matListItemLine>{{ p.cantidad }} turnos</span>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <h3>Clientes frecuentes</h3>
+        @if ((stats()?.clientes_frecuentes?.length ?? 0) === 0) {
+          <p class="muted">Sin datos en el período</p>
+        } @else {
+          <mat-list>
+            @for (c of stats()?.clientes_frecuentes ?? []; track c.nombre) {
+              <mat-list-item>
+                <span matListItemTitle>{{ c.nombre }}</span>
+                <span matListItemLine>{{ c.visitas }} visitas</span>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
       </mat-card>
     </div>
 
@@ -76,6 +146,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
       </mat-card>
     }
 
+    <h2 class="section-title">Turnos de hoy</h2>
+
     @if (loading()) {
       <div class="loading"><mat-spinner /></div>
     } @else if (turnos().length === 0) {
@@ -88,137 +160,43 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <div class="turnos-list">
         @for (turno of turnos(); track turno.id) {
           <mat-card class="turno-card">
-            <div class="turno-time">
-              <strong>{{ getHora(turno) }}</strong>
-            </div>
+            <div class="turno-time"><strong>{{ getHora(turno) }}</strong></div>
             <div class="turno-info">
-              <h3>
-                {{ turno.cliente?.nombre }} {{ turno.cliente?.apellido }}
-              </h3>
+              <h3>{{ turno.cliente?.nombre }} {{ turno.cliente?.apellido }}</h3>
               <p>{{ turno.servicio?.nombre }} · {{ turno.profesional?.nombre }} {{ turno.profesional?.apellido }}</p>
             </div>
-            <mat-chip [class]="'estado-' + turno.estado">
-              {{ estadoLabel(turno.estado) }}
-            </mat-chip>
+            <mat-chip [class]="'estado-' + turno.estado">{{ estadoLabel(turno.estado) }}</mat-chip>
           </mat-card>
         }
       </div>
     }
   `,
   styles: `
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-      gap: 1rem;
-      flex-wrap: wrap;
-
-      h1 {
-        margin: 0;
-        font-size: 1.75rem;
-        font-weight: 600;
-      }
-
-      .subtitle {
-        margin: 0.25rem 0 0;
-        color: var(--app-text-muted);
-      }
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.25rem;
-
-      mat-icon {
-        color: var(--app-accent);
-        font-size: 2rem;
-        width: 2rem;
-        height: 2rem;
-      }
-
-      .stat-value {
-        display: block;
-        font-size: 1.75rem;
-        font-weight: 600;
-        line-height: 1.2;
-      }
-
-      .stat-label {
-        color: var(--app-text-muted);
-        font-size: 0.875rem;
-      }
-    }
-
-    .loading {
-      display: flex;
-      justify-content: center;
-      padding: 3rem;
-    }
-
-    .empty-card {
-      text-align: center;
-      padding: 3rem;
-
-      mat-icon {
-        font-size: 3rem;
-        width: 3rem;
-        height: 3rem;
-        color: var(--app-text-muted);
-      }
-    }
-
-    .admin-card {
-      margin-bottom: 1.5rem;
-      padding: 1.25rem;
-
-      h3 { margin: 0 0 0.5rem; }
-      p { margin: 0 0 1rem; color: var(--app-text-muted); }
-    }
-
-    .turnos-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .turno-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem 1.25rem;
-      flex-wrap: wrap;
-    }
-
-    .turno-time {
-      min-width: 60px;
-      font-size: 1.125rem;
-    }
-
-    .turno-info {
-      flex: 1;
-
-      h3 {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 500;
-      }
-
-      p {
-        margin: 0.25rem 0 0;
-        color: var(--app-text-muted);
-        font-size: 0.875rem;
-      }
-    }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
+    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card, .chart-card { padding: 1.25rem; }
+    .stat-card { display: flex; align-items: center; gap: 1rem; }
+    .stat-card.highlight mat-icon { color: #2e7d32; }
+    .stat-card mat-icon { color: var(--app-accent); font-size: 2rem; width: 2rem; height: 2rem; }
+    .stat-value { display: block; font-size: 1.5rem; font-weight: 600; }
+    .stat-label { color: var(--app-text-muted); font-size: 0.875rem; }
+    .chart-card h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+    .muted { color: var(--app-text-muted); margin: 0; }
+    .section-title { font-size: 1.125rem; margin: 0 0 1rem; }
+    .admin-card { margin-bottom: 1.5rem; padding: 1.25rem; }
+    .admin-card h3 { margin: 0 0 0.5rem; }
+    .admin-card p { margin: 0 0 1rem; color: var(--app-text-muted); }
+    .loading { display: flex; justify-content: center; padding: 3rem; }
+    .empty-card { text-align: center; padding: 3rem; }
+    .turnos-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .turno-card { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; flex-wrap: wrap; }
+    .turno-time { min-width: 60px; font-size: 1.125rem; }
+    .turno-info { flex: 1; }
+    .turno-info h3 { margin: 0; font-size: 1rem; font-weight: 500; }
+    .turno-info p { margin: 0.25rem 0 0; color: var(--app-text-muted); font-size: 0.875rem; }
   `,
 })
 export class DashboardComponent implements OnInit {
@@ -228,28 +206,29 @@ export class DashboardComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly turnos = signal<Turno[]>([]);
+  readonly stats = signal<DashboardStats | null>(null);
   readonly todayLabel = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
 
-  confirmados = signal(0);
-  pendientes = signal(0);
-  cancelados = signal(0);
-
   ngOnInit(): void {
-    void this.loadTurnos();
+    void this.load();
   }
 
-  private async loadTurnos(): Promise<void> {
+  private async load(): Promise<void> {
     this.loading.set(true);
-
     const hoy = new Date();
     const inicio = startOfDay(hoy).toISOString();
     const fin = endOfDay(hoy).toISOString();
+    const mesInicio = format(startOfMonth(hoy), 'yyyy-MM-dd');
+    const mesFin = format(endOfMonth(hoy), 'yyyy-MM-dd');
+
+    const statsPromise = this.supabase.client.rpc('obtener_dashboard_stats', {
+      p_desde: mesInicio,
+      p_hasta: mesFin,
+    });
 
     let query = this.supabase.client
       .from('turnos')
-      .select(
-        '*, cliente:clientes(nombre, apellido), profesional:profesionales(nombre, apellido), servicio:servicios(nombre, precio)',
-      )
+      .select('*, cliente:clientes(nombre, apellido), profesional:profesionales(nombre, apellido), servicio:servicios(nombre, precio)')
       .gte('rango', `[${inicio},)`)
       .lte('rango', `(,${fin}]`)
       .order('rango', { ascending: true });
@@ -259,19 +238,12 @@ export class DashboardComponent implements OnInit {
       query = query.eq('profesional_id', profile.profesional_id);
     }
 
-    const { data, error } = await query;
+    const [{ data, error }, { data: statsData }] = await Promise.all([query, statsPromise]);
 
-    if (error) {
-      console.error(error);
-      this.turnos.set([]);
-    } else {
-      const items = (data ?? []) as Turno[];
-      this.turnos.set(items);
-      this.confirmados.set(items.filter((t) => t.estado === 'confirmado').length);
-      this.pendientes.set(items.filter((t) => ['reservado', 'reprogramado'].includes(t.estado)).length);
-      this.cancelados.set(items.filter((t) => t.estado === 'cancelado').length);
-    }
+    if (error) this.turnos.set([]);
+    else this.turnos.set((data ?? []) as Turno[]);
 
+    this.stats.set((statsData as DashboardStats) ?? null);
     this.loading.set(false);
   }
 

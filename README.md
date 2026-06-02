@@ -8,18 +8,26 @@ Plataforma de gestión para estética profesional (Argentina).
 - **Backend**: Supabase (`wxiifdjerstsrrbvmuvh`) — PostgreSQL, Auth, Storage, Edge Functions
 - **Integraciones**: Telegram Bot + OpenRouter (IA), Google Calendar
 
+## Módulos
+
+| Módulo | Descripción |
+|--------|-------------|
+| Panel | KPIs: facturación, ocupación, tops de servicios/profesionales/clientes |
+| Turnos | Calendario, reserva, reprogramación, anti-solapamiento |
+| Clientes | CRUD, baja lógica, historial de cambios |
+| Servicios | CRUD, promociones, asignación a profesionales |
+| Personal | Horarios, ausencias, Google Calendar ID |
+| Cobros | Registro interno de ingresos |
+| Reportes | Export PDF / Excel con filtros |
+| Marketing | Campañas Telegram opt-in con segmentación |
+| Configuración | Política de cancelación / no-show |
+
 ## Requisitos
 
 - Node.js 20+
 - npm 10+
-- Cuenta Supabase (proyecto configurado)
-- Secrets en Supabase Dashboard → Edge Functions → Secrets
 
 ## Configuración local
-
-1. Copiar `.env.example` a `.env` (solo referencia; el frontend usa `environment.ts`).
-
-2. Instalar y levantar:
 
 ```bash
 cd frontend
@@ -27,68 +35,48 @@ npm install
 npm start
 ```
 
-3. Crear usuario admin en Supabase Auth y actualizar su fila en `profiles` con `rol = 'admin'`.
+Crear usuario en Supabase Auth y asignar rol en `profiles` (`admin`, `recepcion`, `profesional`).
 
-## Secrets de Edge Functions (Supabase Dashboard)
+## Secrets Edge Functions (Supabase Dashboard)
 
 | Secret | Uso |
 |--------|-----|
-| `TELEGRAM_BOT_TOKEN` | Bot de Telegram |
+| `TELEGRAM_BOT_TOKEN` | Bot + campañas + notificaciones |
 | `OPENROUTER_API_KEY` | IA conversacional |
-| `OPENROUTER_MODEL` | Opcional, default `openai/gpt-4o-mini` |
-| `GOOGLE_CLIENT_ID` | Google Calendar OAuth |
-| `GOOGLE_CLIENT_SECRET` | Google Calendar OAuth |
-| `GOOGLE_REDIRECT_URI` | URL callback → `.../functions/v1/gcal-oauth` |
+| `OPENROUTER_MODEL` | Opcional (`openai/gpt-4o-mini`) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Google Calendar |
 
-## Edge Functions desplegadas
+## Edge Functions
 
-| Función | Descripción |
-|---------|-------------|
-| `telegram-webhook` | Webhook del bot con IA y tool-calling |
-| `gcal-sync` | Sincroniza turnos con Google Calendar |
-| `gcal-oauth` | OAuth para conectar cuenta Google |
-| `notificaciones-dispatch` | Envía cola de notificaciones (Telegram/Email/WhatsApp) |
+- `telegram-webhook` — Bot IA con tool-calling
+- `gcal-sync` / `gcal-oauth` — Google Calendar
+- `notificaciones-dispatch` — Cola de notificaciones (cron cada 5 min)
+- `campanas-dispatch` — Difusión marketing opt-in
 
-### Telegram webhook
+### Webhook Telegram
 
 ```bash
 curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://wxiifdjerstsrrbvmuvh.supabase.co/functions/v1/telegram-webhook"
 ```
 
-### Cron de notificaciones
+### Cron notificaciones
 
-Programar invocación cada 5 minutos a `notificaciones-dispatch` (Supabase Cron o servicio externo).
+Programar POST a `notificaciones-dispatch` cada 5 minutos (Supabase Cron o servicio externo).
 
-## Google Calendar
-
-1. Admin → Panel → **Conectar Google Calendar**
-2. Asignar `google_calendar_id` a cada profesional en la base de datos
-
-## Repositorio GitHub
+## GitHub
 
 Repo privado: **AppEstetica**
 
 ```bash
-# Crear repo en GitHub y conectar:
-git remote add origin https://github.com/<usuario>/AppEstetica.git
-git push -u origin main
-```
-
-## Estructura
-
-```
-AppEstetica/
-├── frontend/          # App Angular
-├── supabase/          # Migraciones y Edge Functions
-├── .github/workflows/ # CI
-└── README.md
+gh auth login
+gh repo create AppEstetica --private --source=. --remote=origin --push
 ```
 
 ## Roles
 
-- **Administrador**: acceso total + integraciones
-- **Recepción**: clientes, turnos, servicios
-- **Profesional**: su agenda y turnos asignados
+- **Administrador**: acceso total + marketing + configuración
+- **Recepción**: clientes, turnos, servicios, cobros, reportes
+- **Profesional**: su agenda
 
 ## Licencia
 

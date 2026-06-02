@@ -54,7 +54,11 @@ export class MainLayoutComponent {
     { label: 'Turnos', icon: 'calendar_month', route: '/turnos' },
     { label: 'Clientes', icon: 'people', route: '/clientes', roles: ['admin', 'recepcion'] },
     { label: 'Servicios', icon: 'spa', route: '/servicios', roles: ['admin', 'recepcion'] },
+    { label: 'Cobros', icon: 'payments', route: '/cobros', roles: ['admin', 'recepcion'] },
+    { label: 'Reportes', icon: 'assessment', route: '/reportes', roles: ['admin', 'recepcion'] },
+    { label: 'Marketing', icon: 'campaign', route: '/marketing', roles: ['admin'] },
     { label: 'Personal', icon: 'badge', route: '/personal', roles: ['admin'] },
+    { label: 'Configuración', icon: 'settings', route: '/configuracion', roles: ['admin'] },
   ];
 
   readonly visibleNav = computed(() => {

@@ -12,6 +12,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Cliente } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ClienteFormDialogComponent } from './cliente-form-dialog.component';
+import { ClienteHistorialDialogComponent } from './cliente-historial-dialog.component';
 
 @Component({
   selector: 'app-clientes-list',
@@ -72,6 +73,9 @@ import { ClienteFormDialogComponent } from './cliente-form-dialog.component';
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let c">
+              <button mat-icon-button matTooltip="Historial" (click)="openHistorial(c)">
+                <mat-icon>history</mat-icon>
+              </button>
               <button mat-icon-button matTooltip="Editar" (click)="openForm(c)">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -169,6 +173,13 @@ export class ClientesListComponent implements OnInit {
 
     ref.afterClosed().subscribe((saved) => {
       if (saved) void this.load();
+    });
+  }
+
+  openHistorial(cliente: Cliente): void {
+    this.dialog.open(ClienteHistorialDialogComponent, {
+      width: '480px',
+      data: { clienteId: cliente.id },
     });
   }
 

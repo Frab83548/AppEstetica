@@ -9,6 +9,10 @@ import { PersonalListComponent } from './features/personal/personal-list.compone
 import { ServicioFormComponent } from './features/servicios/servicio-form.component';
 import { ServiciosListComponent } from './features/servicios/servicios-list.component';
 import { TurnosCalendarComponent } from './features/turnos/turnos-calendar.component';
+import { CobrosListComponent } from './features/cobros/cobros-list.component';
+import { ReportesComponent } from './features/reportes/reportes.component';
+import { MarketingComponent } from './features/marketing/marketing.component';
+import { ConfiguracionComponent } from './features/configuracion/configuracion.component';
 import { MainLayoutComponent } from './layout/main-layout.component';
 
 export const routes: Routes = [
@@ -48,6 +52,26 @@ export const routes: Routes = [
       {
         path: 'personal/:id',
         component: PersonalDetailComponent,
+        canActivate: [roleGuard(['admin'])],
+      },
+      {
+        path: 'cobros',
+        component: CobrosListComponent,
+        canActivate: [roleGuard(['admin', 'recepcion'])],
+      },
+      {
+        path: 'reportes',
+        component: ReportesComponent,
+        canActivate: [roleGuard(['admin', 'recepcion'])],
+      },
+      {
+        path: 'marketing',
+        component: MarketingComponent,
+        canActivate: [roleGuard(['admin'])],
+      },
+      {
+        path: 'configuracion',
+        component: ConfiguracionComponent,
         canActivate: [roleGuard(['admin'])],
       },
     ],
