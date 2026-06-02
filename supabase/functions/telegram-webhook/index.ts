@@ -122,6 +122,178 @@ async function getOpenRouterModel(): Promise<string> {
   return Deno.env.get('OPENROUTER_MODEL') ?? (await configValue('edge_openrouter_model')) ?? 'openai/gpt-4o-mini';
 }
 
+const TZ = 'America/Argentina/Buenos_Aires';
+const WEEKDAYS_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+function getTodayIsoArgentina(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+function addDaysIso(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0)).toISOString().slice(0, 10);
+}
+
+function getWeekdayIndexArgentina(iso: string): number {
+  const wd = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short' })
+    .format(new Date(`${iso}T12:00:00Z`));
+  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return map[wd] ?? 0;
+}
+
+function formatDateLongArgentina(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('es-AR', {
+    timeZone: TZ,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function buildDateContext(): string {
+  const hoy = getTodayIsoArgentina();
+  const hoyDow = getWeekdayIndexArgentina(hoy);
+  const lines = [
+    `Hoy: ${formatDateLongArgentina(hoy)} → ${hoy}`,
+    `Mañana: ${formatDateLongArgentina(addDaysIso(hoy, 1))} → ${addDaysIso(hoy, 1)}`,
+    '',
+    'Días de la semana (próxima ocurrencia):',
+  ];
+
+  for (let dow = 0; dow < 7; dow++) {
+    const delta = (dow - hoyDow + 7) % 7;
+    const iso = addDaysIso(hoy, delta);
+    lines.push(`  ${WEEKDAYS_ES[dow]} → ${iso} (${formatDateLongArgentina(iso)})`);
+  }
+
+  lines.push('', 'Calendario próximos 14 días:');
+  for (let i = 0; i <= 14; i++) {
+    const iso = addDaysIso(hoy, i);
+    lines.push(`  ${iso} = ${formatDateLongArgentina(iso)}`);
+  }
+
+  return lines.join('\n');
+}
+
+function buildSystemPrompt(clienteNombre?: string | null): string {
+  const nombreHint = clienteNombre ? `La clienta se llama ${clienteNombre}. Usá su nombre con naturalidad.` : '';
+  return `Sos Laura, recepcionista de una estética en Córdoba, Argentina. Hablás por Telegram como una persona real: cálida, cercana, nunca robótica.
+${nombreHint}
+
+Tono:
+- Español rioplatense (vos, dale, perfecto). Mensajes cortos, como un chat entre conocidas.
+- No uses listas numeradas, bullets ni frases de bot ("Si quieres, puedo...", "Lamentablemente", "¿Te gustaría...?").
+- Si no hay turnos, decilo con empatía y proponé otra fecha concreta.
+- Para horarios disponibles podés numerarlos; el resto del mensaje debe sonar humano.
+
+Datos:
+- Moneda ARS. Zona horaria ${TZ}.
+- Precios y horarios SOLO de las herramientas. Nunca inventes.
+
+FECHAS — LEÉ ESTO ANTES DE RESPONDER:
+${buildDateContext()}
+
+Reglas de fechas (obligatorio):
+- "mañana", "el jueves", "jueves de esta semana", "esta semana" → traducilos usando el calendario de arriba.
+- ver_disponibilidad siempre con fecha YYYY-MM-DD del calendario. Nunca uses meses/años inventados.
+- Al hablarle al cliente, decí la fecha legible correcta (ej. "jueves 4 de junio", nunca octubre si no corresponde).
+
+IDs:
+- servicio_id y profesional_id = campo "id" UUID de las herramientas. Nunca slugs como "lucia_fernandez".
+
+Reservas:
+1) consultar_servicios / consultar_profesionales
+2) ver_disponibilidad (UUID + fecha YYYY-MM-DD)
+3) reservar_turno con slot ISO8601 — NO confirma sola
+4) Mostrá resumen y pedí SI o NO
+Nunca digas que el turno está confirmado hasta que responda SI.`;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+  return UUID_RE.test(value);
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
+async function resolveProfesionalId(idOrName: string): Promise<string | null> {
+  if (isUuid(idOrName)) return idOrName;
+
+  const { data } = await supabase
+    .from('profesionales')
+    .select('id,nombre,apellido')
+    .eq('activo', true)
+    .is('deleted_at', null);
+
+  const target = slugify(idOrName);
+  for (const prof of data ?? []) {
+    const full = slugify(`${prof.nombre}_${prof.apellido}`);
+    const first = slugify(prof.nombre);
+    if (target === full || target === first || full.includes(target) || target.includes(first)) {
+      return prof.id;
+    }
+  }
+
+  const search = idOrName.toLowerCase();
+  const match = (data ?? []).find((prof) =>
+    `${prof.nombre} ${prof.apellido}`.toLowerCase().includes(search) ||
+    prof.nombre.toLowerCase().includes(search) ||
+    prof.apellido.toLowerCase().includes(search)
+  );
+  return match?.id ?? null;
+}
+
+async function resolveServicioId(idOrName: string): Promise<string | null> {
+  if (isUuid(idOrName)) return idOrName;
+
+  const { data } = await supabase
+    .from('servicios')
+    .select('id,nombre')
+    .eq('activo', true)
+    .is('deleted_at', null);
+
+  const target = slugify(idOrName);
+  for (const serv of data ?? []) {
+    const slug = slugify(serv.nombre);
+    if (target === slug || slug.includes(target) || target.includes(slug)) {
+      return serv.id;
+    }
+  }
+
+  const search = idOrName.toLowerCase();
+  const match = (data ?? []).find((serv) => serv.nombre.toLowerCase().includes(search));
+  return match?.id ?? null;
+}
+
+async function resolveReservaIds(args: Record<string, unknown>): Promise<
+  { servicio_id: string; profesional_id: string; inicio: string } | { error: string }
+> {
+  const servicioId = await resolveServicioId(String(args.servicio_id ?? ''));
+  if (!servicioId) return { error: `Servicio no encontrado: ${args.servicio_id}` };
+
+  const profesionalId = await resolveProfesionalId(String(args.profesional_id ?? ''));
+  if (!profesionalId) return { error: `Profesional no encontrado: ${args.profesional_id}` };
+
+  const inicio = String(args.inicio ?? '');
+  if (!inicio) return { error: 'Falta la fecha/hora del turno (inicio).' };
+
+  return { servicio_id: servicioId, profesional_id: profesionalId, inicio };
+}
+
 async function sendTelegram(chatId: number, text: string) {
   const token = await getTelegramToken();
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -177,38 +349,43 @@ async function linkTelegramSuscriptor(telegramId: number, clienteId: string) {
 
 async function crearClienteDesdeTelegram(
   telegramId: number,
-  telefono: string,
+  telefono: string | null,
   nombre: string,
   apellido: string,
 ): Promise<string> {
   const { data: byTg } = await supabase.from('clientes').select('id').eq('telegram_id', telegramId).maybeSingle();
   if (byTg?.id) {
-    await supabase.from('clientes').update({ nombre, apellido, telefono, activo: true, deleted_at: null })
-      .eq('id', byTg.id);
+    const patch: Record<string, unknown> = { nombre, apellido, activo: true, deleted_at: null };
+    if (telefono) patch.telefono = telefono;
+    await supabase.from('clientes').update(patch).eq('id', byTg.id);
     await linkTelegramSuscriptor(telegramId, byTg.id);
     return byTg.id;
   }
 
-  const normalized = telefono.replace(/\D/g, '').slice(-10);
-  const { data: byPhone } = await supabase.from('clientes').select('id')
-    .or(`telefono.ilike.%${normalized}%,telefono.ilike.%${telefono}%`)
-    .is('deleted_at', null).limit(1).maybeSingle();
+  if (telefono) {
+    const normalized = telefono.replace(/\D/g, '').slice(-10);
+    const { data: byPhone } = await supabase.from('clientes').select('id')
+      .or(`telefono.ilike.%${normalized}%,telefono.ilike.%${telefono}%`)
+      .is('deleted_at', null).limit(1).maybeSingle();
 
-  if (byPhone?.id) {
-    await supabase.from('clientes').update({
-      nombre, apellido, telefono, telegram_id: telegramId, activo: true,
-    }).eq('id', byPhone.id);
-    await linkTelegramSuscriptor(telegramId, byPhone.id);
-    return byPhone.id;
+    if (byPhone?.id) {
+      await supabase.from('clientes').update({
+        nombre, apellido, telefono, telegram_id: telegramId, activo: true,
+      }).eq('id', byPhone.id);
+      await linkTelegramSuscriptor(telegramId, byPhone.id);
+      return byPhone.id;
+    }
   }
 
-  const { data: created, error } = await supabase.from('clientes').insert({
+  const insertRow: Record<string, unknown> = {
     nombre,
     apellido,
-    telefono,
     telegram_id: telegramId,
     activo: true,
-  }).select('id').single();
+  };
+  if (telefono) insertRow.telefono = telefono;
+
+  const { data: created, error } = await supabase.from('clientes').insert(insertRow).select('id').single();
 
   if (error || !created) throw new Error(error?.message ?? 'No se pudo crear el cliente');
   await linkTelegramSuscriptor(telegramId, created.id);
@@ -248,7 +425,9 @@ async function executeTool(name: string, args: Record<string, unknown>, telegram
     case 'consultar_profesionales': {
       let query = supabase.from('profesionales').select('id,nombre,apellido,especialidades').eq('activo', true).is('deleted_at', null);
       if (args.servicio_id) {
-        const { data: links } = await supabase.from('servicio_profesional').select('profesional_id').eq('servicio_id', args.servicio_id);
+        const servicioId = await resolveServicioId(String(args.servicio_id));
+        if (!servicioId) return { error: `Servicio no encontrado: ${args.servicio_id}` };
+        const { data: links } = await supabase.from('servicio_profesional').select('profesional_id').eq('servicio_id', servicioId);
         const ids = (links ?? []).map((l) => l.profesional_id);
         if (ids.length) query = query.in('id', ids);
       }
@@ -256,30 +435,40 @@ async function executeTool(name: string, args: Record<string, unknown>, telegram
       return data ?? [];
     }
     case 'ver_disponibilidad': {
+      const resolved = await resolveReservaIds({
+        servicio_id: args.servicio_id,
+        profesional_id: args.profesional_id,
+        inicio: '2000-01-01T12:00:00.000Z',
+      });
+      if ('error' in resolved) return { error: resolved.error };
       const { data, error } = await supabase.rpc('obtener_slots_disponibles', {
-        p_profesional_id: args.profesional_id,
-        p_servicio_id: args.servicio_id,
+        p_profesional_id: resolved.profesional_id,
+        p_servicio_id: resolved.servicio_id,
         p_fecha: args.fecha,
       });
       if (error) return { error: error.message };
-      return data ?? [];
+      const fecha = String(args.fecha ?? '');
+      return {
+        hoy: getTodayIsoArgentina(),
+        fecha,
+        fecha_legible: fecha ? formatDateLongArgentina(fecha) : null,
+        slots: data ?? [],
+      };
     }
     case 'reservar_turno': {
       if (!clienteId) {
-        return { error: 'El cliente debe compartir su contacto primero (📎 → Contacto) y completar nombre y apellido.' };
+        return { error: 'El cliente debe completar nombre y apellido antes de reservar.' };
       }
-      const resumen = await buildReservaResumen(args);
+      const resolved = await resolveReservaIds(args);
+      if ('error' in resolved) return { error: resolved.error };
+      const resumen = await buildReservaResumen(resolved);
       const conv = await getConversacion(telegramId);
       const ctx = (conv?.contexto as BotContexto) ?? {};
       await saveConversacion(telegramId, {
         contexto: {
           ...ctx,
           estado: 'awaiting_confirmacion',
-          pending_reserva: {
-            servicio_id: String(args.servicio_id),
-            profesional_id: String(args.profesional_id),
-            inicio: String(args.inicio),
-          },
+          pending_reserva: resolved,
         },
       });
       return {
@@ -289,7 +478,7 @@ async function executeTool(name: string, args: Record<string, unknown>, telegram
       };
     }
     case 'mis_turnos': {
-      if (!clienteId) return { error: 'Compartí tu contacto con /start para ver tus turnos.' };
+      if (!clienteId) return { error: 'Completá tu registro con /start para ver tus turnos.' };
       const { data } = await supabase.from('turnos').select('id,rango,estado,servicios(nombre),profesionales(nombre,apellido)')
         .eq('cliente_id', clienteId).in('estado', ['reservado', 'confirmado', 'reprogramado']).gte('rango', `[${new Date().toISOString()},)`);
       return data ?? [];
@@ -316,11 +505,17 @@ async function confirmPendingBooking(chatId: number, telegramId: number, cliente
     return;
   }
 
+  const resolved = await resolveReservaIds(pending);
+  if ('error' in resolved) {
+    await sendTelegram(chatId, `No pudimos confirmar el turno: ${resolved.error}`);
+    return;
+  }
+
   const { data: turnoId, error } = await supabase.rpc('reservar_turno', {
     p_cliente_id: clienteId,
-    p_profesional_id: pending.profesional_id,
-    p_servicio_id: pending.servicio_id,
-    p_inicio: pending.inicio,
+    p_profesional_id: resolved.profesional_id,
+    p_servicio_id: resolved.servicio_id,
+    p_inicio: resolved.inicio,
     p_origen: 'telegram',
   });
 
@@ -332,7 +527,7 @@ async function confirmPendingBooking(chatId: number, telegramId: number, cliente
     return;
   }
 
-  const resumen = await buildReservaResumen(pending);
+  const resumen = await buildReservaResumen(resolved);
   await sendTelegram(chatId, `✅ Turno confirmado (ID: ${turnoId})\n\n${resumen}`);
 }
 
@@ -370,7 +565,7 @@ async function handleContact(chatId: number, phone: string, telegramId: number) 
   await saveConversacion(telegramId, {
     contexto: { estado: 'awaiting_nombre', telefono: phone },
   });
-  await sendTelegram(chatId, '¡Bienvenida/o! No te teníamos registrada.\n\n¿Cuál es tu nombre?');
+  await sendTelegram(chatId, '¡Hola! No te tengo registrada todavía.\n\n¿Cómo te llamás?');
 }
 
 async function handleRegistrationStep(chatId: number, telegramId: number, text: string): Promise<boolean> {
@@ -396,14 +591,15 @@ async function handleRegistrationStep(chatId: number, telegramId: number, text: 
       await sendTelegram(chatId, 'Por favor escribí tu apellido.');
       return true;
     }
-    if (!ctx.telefono || !ctx.nombre) {
-      await sendTelegram(chatId, 'Compartí tu contacto de nuevo con 📎 → Contacto.');
+    if (!ctx.nombre) {
+      await saveConversacion(telegramId, { contexto: { estado: 'awaiting_nombre' } });
+      await sendTelegram(chatId, '¿Cuál es tu nombre?');
       return true;
     }
     try {
-      const clienteId = await crearClienteDesdeTelegram(telegramId, ctx.telefono, ctx.nombre, apellido);
+      const clienteId = await crearClienteDesdeTelegram(telegramId, ctx.telefono ?? null, ctx.nombre, apellido);
       await saveConversacion(telegramId, { cliente_id: clienteId, contexto: {} });
-      await sendTelegram(chatId, `¡Listo ${ctx.nombre}! Ya podés reservar turnos.\n\nEjemplo: "Quiero turno de manicura mañana"`);
+      await sendTelegram(chatId, `¡Genial, ${ctx.nombre}! Ya quedó todo listo.\n\nContame qué servicio querés y para cuándo, y vemos los horarios juntas.`);
     } catch (e) {
       await sendTelegram(chatId, `Error al registrarte: ${String(e)}`);
     }
@@ -422,7 +618,7 @@ async function handleConfirmationStep(chatId: number, telegramId: number, text: 
   if (/^(s[ií]|confirmo|dale|ok|yes|confirmar)$/.test(t)) {
     const clienteId = await getClienteId(telegramId);
     if (!clienteId) {
-      await sendTelegram(chatId, 'Compartí tu contacto primero con 📎 → Contacto.');
+      await sendTelegram(chatId, 'Primero completá tu registro con /start (nombre y apellido).');
       return true;
     }
     await confirmPendingBooking(chatId, telegramId, clienteId);
@@ -444,7 +640,7 @@ async function processWithAI(chatId: number, telegramId: number, text: string) {
 
   const clienteId = await getClienteId(telegramId);
   if (!clienteId) {
-    await sendTelegram(chatId, 'Para reservar turnos, primero compartí tu contacto (📎 → Contacto). Si sos nueva/o, te pediré nombre y apellido.');
+    await sendTelegram(chatId, 'Para reservar turnos, primero completá tu registro con /start (nombre y apellido).');
     return;
   }
 
@@ -452,20 +648,13 @@ async function processWithAI(chatId: number, telegramId: number, text: string) {
   const historial = (conv?.historial as Array<{ role: string; content: string }>) ?? [];
   const openrouterModel = await getOpenRouterModel();
 
-  const systemPrompt = `Sos el asistente virtual de una estética en Argentina. Respondé en español rioplatense, breve y amable.
-Usá SOLO datos de las herramientas para precios, horarios y disponibilidad. Nunca inventes.
-Moneda: ARS. Zona horaria: America/Argentina/Buenos_Aires.
-Flujo de reserva:
-1) consultar_servicios / consultar_profesionales
-2) ver_disponibilidad con servicio_id, profesional_id y fecha YYYY-MM-DD
-3) reservar_turno con el slot elegido (ISO8601) — esto NO confirma, solo prepara
-4) Mostrá el resumen y pedí que el cliente responda SI o NO
-Nunca digas que el turno está confirmado hasta que el cliente confirme con SI.`;
+  const { data: cliente } = await supabase.from('clientes').select('nombre').eq('id', clienteId).maybeSingle();
+  const systemPrompt = buildSystemPrompt(cliente?.nombre);
 
   const messages = [
     { role: 'system', content: systemPrompt },
     ...historial.slice(-10),
-    { role: 'user', content: text },
+    { role: 'user', content: `(Hoy es ${formatDateLongArgentina(getTodayIsoArgentina())}) ${text}` },
   ];
 
   let response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -520,6 +709,14 @@ Nunca digas que el turno está confirmado hasta que el cliente confirme con SI.`
   await sendTelegram(chatId, reply);
 }
 
+async function startRegistration(chatId: number, telegramId: number, hint?: string) {
+  await saveConversacion(telegramId, { contexto: { estado: 'awaiting_nombre' } });
+  const intro = hint
+    ? `${hint} Para conocerte, ¿cómo te llamás?`
+    : 'Para ayudarte con turnos, contame: ¿cómo te llamás?';
+  await sendTelegram(chatId, intro);
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('OK');
 
@@ -538,7 +735,20 @@ Deno.serve(async (req) => {
   const text = msg.text?.trim() ?? '';
 
   if (text === '/start') {
-    await sendTelegram(chatId, '¡Bienvenida/o a la estética! 👋\n\n1️⃣ Compartí tu contacto (📎 → Contacto)\n2️⃣ Si sos nueva/o, te pediré nombre y apellido\n3️⃣ Después podés reservar turnos en lenguaje natural\n\nEj: "Quiero turno de manicura el viernes"\n\n/stop para no recibir promociones.');
+    const clienteId = await getClienteId(telegramId);
+    if (clienteId) {
+      const { data: c } = await supabase.from('clientes').select('nombre').eq('id', clienteId).single();
+      await sendTelegram(
+        chatId,
+        `¡Hola ${c?.nombre ?? ''}! Qué gusto verte 😊\n\nContame qué necesitás hoy — depilación, manicura, lo que quieras — y te busco un horario.\n\n(Si no querés promos, mandá /stop)`,
+      );
+    } else {
+      await sendTelegram(
+        chatId,
+        '¡Hola! Bienvenida al salón 💅\n\nSoy Laura, estoy acá para ayudarte con turnos y consultas.\n\n(Si no querés promos, mandá /stop)',
+      );
+      await startRegistration(chatId, telegramId);
+    }
     await supabase.from('telegram_suscriptores').upsert({ telegram_id: telegramId, opt_in: false }, { onConflict: 'telegram_id' });
     return new Response('OK');
   }
@@ -549,17 +759,35 @@ Deno.serve(async (req) => {
       opt_in: false,
       opt_out_at: new Date().toISOString(),
     }, { onConflict: 'telegram_id' });
-    await sendTelegram(chatId, 'Dejaste de recibir promociones. Podés seguir reservando turnos.');
+    await sendTelegram(chatId, 'Listo, no te mando más promos. Cuando quieras un turno, escribime nomás.');
     return new Response('OK');
   }
 
   if (text.startsWith('/')) {
-    await sendTelegram(chatId, 'Escribime en lenguaje natural o usá /start.');
+    await sendTelegram(chatId, 'Contame qué necesitás o mandá /start si querés arrancar de nuevo.');
     return new Response('OK');
   }
 
   if (await handleRegistrationStep(chatId, telegramId, text)) return new Response('OK');
   if (await handleConfirmationStep(chatId, telegramId, text)) return new Response('OK');
+
+  const clienteId = await getClienteId(telegramId);
+  if (!clienteId) {
+    const conv = await getConversacion(telegramId);
+    const ctx = (conv?.contexto as BotContexto) ?? {};
+    if (!ctx.estado) {
+      const soyMatch = text.match(/^soy\s+([a-záéíóúñü]+)/i);
+      if (soyMatch) {
+        await saveConversacion(telegramId, {
+          contexto: { estado: 'awaiting_apellido', nombre: soyMatch[1] },
+        });
+        await sendTelegram(chatId, `Gracias ${soyMatch[1]}. ¿Cuál es tu apellido?`);
+        return new Response('OK');
+      }
+      await startRegistration(chatId, telegramId, '¡Hola!');
+    }
+    return new Response('OK');
+  }
 
   await processWithAI(chatId, telegramId, text);
   return new Response('OK');
