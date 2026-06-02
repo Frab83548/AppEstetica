@@ -74,15 +74,17 @@ import { appDialogConfig } from '../../core/constants/dialog.config';
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let c" data-label="">
-              <button mat-icon-button matTooltip="Historial" (click)="openHistorial(c)">
-                <mat-icon>history</mat-icon>
-              </button>
-              <button mat-icon-button matTooltip="Editar" (click)="openForm(c)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="softDelete(c)">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <div class="cell-actions">
+                <button mat-icon-button matTooltip="Historial" (click)="openHistorial(c)">
+                  <mat-icon>history</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Editar" (click)="openForm(c)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="softDelete(c)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </td>
           </ng-container>
 
@@ -98,7 +100,7 @@ import { appDialogConfig } from '../../core/constants/dialog.config';
   `,
   styles: `
     .search-field { width: 100%; max-width: 100%; margin-bottom: 1rem; }
-    @media (min-width: 768px) { .search-field { max-width: 400px; } }
+    @media (min-width: 768px) { .search-field { max-width: 25rem; } }
   `,
 })
 export class ClientesListComponent implements OnInit {
@@ -153,7 +155,6 @@ export class ClientesListComponent implements OnInit {
 
   openForm(cliente?: Cliente): void {
     const ref = this.dialog.open(ClienteFormDialogComponent, appDialogConfig({
-      width: '520px',
       data: cliente ?? null,
     }));
 
@@ -164,7 +165,6 @@ export class ClientesListComponent implements OnInit {
 
   openHistorial(cliente: Cliente): void {
     this.dialog.open(ClienteHistorialDialogComponent, appDialogConfig({
-      width: '480px',
       data: { clienteId: cliente.id },
     }));
   }

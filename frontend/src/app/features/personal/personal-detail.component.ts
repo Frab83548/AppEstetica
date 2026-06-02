@@ -86,9 +86,11 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let h" data-label="">
+                  <div class="cell-actions">
                   <button mat-icon-button color="warn" (click)="deleteHorario(h)">
                     <mat-icon>delete</mat-icon>
                   </button>
+                  </div>
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="horarioColumns"></tr>
@@ -144,9 +146,11 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let a" data-label="">
+                  <div class="cell-actions">
                   <button mat-icon-button color="warn" (click)="deleteAusencia(a)">
                     <mat-icon>delete</mat-icon>
                   </button>
+                  </div>
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="ausenciaColumns"></tr>
@@ -203,7 +207,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
     .muted { color: var(--app-text-muted); word-break: break-word; }
     .tab-content { padding: 1rem 0; }
     .full-width-field { width: 100%; max-width: 100%; }
-    @media (min-width: 768px) { .full-width-field { max-width: 320px; } }
+    @media (min-width: 768px) { .full-width-field { max-width: 20rem; } }
     .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     code { word-break: break-all; }
   `,

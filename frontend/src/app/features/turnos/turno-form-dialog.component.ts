@@ -113,7 +113,7 @@ import { GcalService } from '../../core/services/gcal.service';
       }
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end" class="dialog-actions-stack">
+    <mat-dialog-actions align="end">
       @if (isEdit && turnoData?.estado !== 'cancelado') {
         <button mat-button color="warn" (click)="cancelar()" [disabled]="saving()">Cancelar turno</button>
       }
@@ -128,17 +128,8 @@ import { GcalService } from '../../core/services/gcal.service';
   `,
   styles: `
     .form-stack { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
     .turno-info { margin: 0 0 1rem; line-height: 1.5; word-break: break-word; }
     .error { color: var(--app-error); font-size: 0.875rem; }
-    .dialog-actions-stack {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: flex-end;
-    }
-    @media (max-width: 767px) {
-      .dialog-actions-stack button { flex: 1 1 auto; min-width: calc(50% - 0.5rem); }
-    }
   `,
 })
 export class TurnoFormDialogComponent implements OnInit {

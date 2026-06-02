@@ -1,17 +1,16 @@
 :host {
   display: block;
   height: 100dvh;
-  max-width: 100vw;
-  overflow: hidden;
+  max-width: 100%;
 }
 
 .layout-container {
   height: 100%;
-  max-width: 100vw;
+  max-width: 100%;
 }
 
 .layout-sidenav {
-  width: min(280px, 88vw);
+  width: min(17.5rem, 88vw);
   border-right: 1px solid var(--app-border);
   background: var(--app-surface);
   display: flex;
@@ -32,6 +31,7 @@
     font-size: 1.75rem;
     width: 1.75rem;
     height: 1.75rem;
+    flex-shrink: 0;
   }
 
   .brand-text {
@@ -47,7 +47,7 @@
   flex: 1;
 
   a {
-    border-radius: 8px;
+    border-radius: 0.5rem;
     margin-bottom: 2px;
     color: var(--app-text-muted);
     min-height: var(--touch-min);
@@ -84,7 +84,7 @@
   flex-direction: column;
   background: var(--app-bg);
   min-width: 0;
-  max-width: 100vw;
+  max-width: 100%;
 }
 
 .layout-toolbar {
@@ -97,6 +97,7 @@
 
 .toolbar-spacer {
   flex: 1;
+  min-width: 0;
 }
 
 .user-menu-trigger {
@@ -104,12 +105,13 @@
   align-items: center;
   gap: 0.25rem;
   min-height: var(--touch-min);
+  max-width: 50%;
 
   .user-name {
-    max-width: min(160px, 28vw);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
   }
 }
 
@@ -127,20 +129,27 @@
 .page-content {
   flex: 1;
   overflow: auto;
-  overflow-x: hidden;
   padding: var(--page-padding);
   padding-bottom: max(var(--page-padding), env(safe-area-inset-bottom));
   min-width: 0;
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  box-sizing: border-box;
 }
 
 @media (max-width: 767px) {
   .user-name {
     display: none;
   }
+
+  .user-menu-trigger {
+    max-width: none;
+  }
 }
 
 @media (min-width: 1024px) {
   .layout-sidenav {
-    width: 260px;
+    width: 16.25rem;
   }
 }

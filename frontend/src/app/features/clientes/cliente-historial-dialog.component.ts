@@ -19,7 +19,7 @@ interface HistorialItem {
     <h2 mat-dialog-title>Historial del cliente</h2>
     <mat-dialog-content>
       @if (loading()) {
-        <mat-spinner />
+        <div class="loading"><mat-spinner /></div>
       } @else if (items().length === 0) {
         <p>Sin historial registrado.</p>
       } @else {
@@ -35,6 +35,9 @@ interface HistorialItem {
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cerrar</button>
     </mat-dialog-actions>
+  `,
+  styles: `
+    mat-list-item span { word-break: break-word; }
   `,
 })
 export class ClienteHistorialDialogComponent {

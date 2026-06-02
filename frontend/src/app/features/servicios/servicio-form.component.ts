@@ -70,7 +70,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <p class="error">{{ error() }}</p>
             }
 
-            <div class="actions">
+            <div class="actions btn-stack-mobile">
               <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="saveServicio()">
                 @if (saving()) { <mat-spinner diameter="20" /> } @else { Guardar servicio }
               </button>
@@ -131,9 +131,11 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 <ng-container matColumnDef="acciones">
                   <th mat-header-cell *matHeaderCellDef></th>
                   <td mat-cell *matCellDef="let p" data-label="">
+                    <div class="cell-actions">
                     <button mat-icon-button color="warn" (click)="deletePromocion(p)">
                       <mat-icon>delete</mat-icon>
                     </button>
+                    </div>
                   </td>
                 </ng-container>
                 <tr mat-header-row *matHeaderRowDef="promoColumns"></tr>
@@ -148,7 +150,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
   `,
   styles: `
     .form-layout { display: flex; flex-direction: column; gap: 1.5rem; max-width: 100%; }
-    @media (min-width: 768px) { .form-layout { max-width: 720px; } }
+    @media (min-width: 768px) { .form-layout { max-width: 45rem; } }
     .actions { margin-top: 1rem; }
     .error { color: var(--app-error); }
   `,

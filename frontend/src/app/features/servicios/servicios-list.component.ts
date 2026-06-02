@@ -62,23 +62,27 @@ import { SupabaseService } from '../../core/services/supabase.service';
           <ng-container matColumnDef="promociones">
             <th mat-header-cell *matHeaderCellDef>Promociones</th>
             <td mat-cell *matCellDef="let s" data-label="Promociones">
+              <div class="chips-wrap">
               @for (p of promosFor(s.id); track p.id) {
                 <mat-chip>{{ p.nombre }}</mat-chip>
               } @empty {
                 <span class="muted">—</span>
               }
+              </div>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let s" data-label="">
+              <div class="cell-actions">
               <button mat-icon-button matTooltip="Editar" [routerLink]="['/servicios', s.id]">
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="softDelete(s)">
                 <mat-icon>delete</mat-icon>
               </button>
+              </div>
             </td>
           </ng-container>
 
@@ -89,8 +93,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .muted { color: var(--app-text-muted); font-size: 0.8125rem; }
-    mat-chip { margin: 2px; font-size: 0.75rem; }
+    .muted { color: var(--app-text-muted); font-size: 0.8125rem; word-break: break-word; }
+    mat-chip { font-size: 0.75rem; }
   `,
 })
 export class ServiciosListComponent implements OnInit {

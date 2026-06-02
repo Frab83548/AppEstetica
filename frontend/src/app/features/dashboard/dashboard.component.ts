@@ -145,7 +145,7 @@ interface DashboardStats {
           } @else {
             <p class="muted">Los turnos se sincronizan al calendario de cada profesional.</p>
           }
-          <div class="admin-actions">
+          <div class="admin-actions btn-stack-mobile">
             <a mat-stroked-button routerLink="/configuracion">Ver configuración</a>
             <button mat-stroked-button (click)="desconectarGcal()">Desconectar</button>
           </div>
@@ -157,7 +157,7 @@ interface DashboardStats {
           </a>
         } @else {
           <p>Credenciales listas. Autorizá la cuenta Google del negocio (paso 2).</p>
-          <div class="admin-actions">
+          <div class="admin-actions btn-stack-mobile">
             <a mat-flat-button color="primary" [href]="gcal.getOAuthUrl()" target="_blank" rel="noopener">
               <mat-icon>calendar_month</mat-icon>
               Conectar Google Calendar

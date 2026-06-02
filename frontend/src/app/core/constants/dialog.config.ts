@@ -8,5 +8,6 @@ export const APP_DIALOG_CONFIG: MatDialogConfig = {
 };
 
 export function appDialogConfig(overrides: MatDialogConfig = {}): MatDialogConfig {
-  return { ...APP_DIALOG_CONFIG, ...overrides };
+  const { width: _width, ...rest } = overrides;
+  return { ...APP_DIALOG_CONFIG, ...rest };
 }

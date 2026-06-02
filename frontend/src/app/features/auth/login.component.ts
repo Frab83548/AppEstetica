@@ -23,9 +23,11 @@ import { ThemeService } from '../../core/services/theme.service';
   ],
   template: `
     <div class="login-page">
-      <button mat-icon-button class="theme-btn" (click)="theme.toggle()" aria-label="Cambiar tema">
-        <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-      </button>
+      <header class="login-toolbar">
+        <button mat-icon-button (click)="theme.toggle()" aria-label="Cambiar tema">
+          <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+      </header>
 
       <mat-card class="login-card">
         <div class="login-header">
@@ -85,24 +87,25 @@ import { ThemeService } from '../../core/services/theme.service';
     .login-page {
       min-height: 100dvh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 1rem;
       padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
         max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
       background: var(--app-bg);
-      position: relative;
-      overflow-x: hidden;
     }
 
-    .theme-btn {
-      position: absolute;
-      top: max(0.75rem, env(safe-area-inset-top));
-      right: max(0.75rem, env(safe-area-inset-right));
+    .login-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+      max-width: min(25rem, 100%);
     }
 
     .login-card {
       width: 100%;
-      max-width: min(400px, 100%);
+      max-width: min(25rem, 100%);
       padding: clamp(1.25rem, 4vw, 2rem);
     }
 

@@ -92,7 +92,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
             <input matInput type="password" formControlName="client_secret" autocomplete="new-password"
               [placeholder]="googleSecretSaved() ? 'Dejar vacío para mantener el actual' : ''" />
           </mat-form-field>
-          <div class="actions">
+          <div class="actions form-actions">
             <button mat-flat-button color="primary" type="button" [disabled]="savingGoogle()" (click)="guardarGoogle()">
               Guardar credenciales
             </button>
@@ -126,22 +126,19 @@ import { SupabaseService } from '../../core/services/supabase.service';
   `,
   styles: `
     .config-card { padding: clamp(1rem, 3vw, 1.25rem); max-width: 100%; margin-bottom: 1.5rem; }
-    @media (min-width: 768px) { .config-card { max-width: 720px; } }
+    @media (min-width: 768px) { .config-card { max-width: 45rem; } }
     .config-card h3 { margin: 0 0 0.75rem; font-size: var(--text-h3); }
     .gcal-card { border-left: 4px solid var(--app-accent); }
     .checklist mat-icon { color: var(--app-text-muted); }
     .checklist mat-icon.done { color: #2e7d32; }
-    .banner { display: flex; align-items: center; gap: 0.35rem; padding: 0.75rem 1rem; border-radius: 8px; margin: 0 0 1rem; }
-    .banner.ok { background: #e8f5e9; color: #1b5e20; }
+    .banner { display: flex; align-items: center; gap: 0.35rem; padding: 0.75rem 1rem; border-radius: 0.5rem; margin: 0 0 1rem; flex-wrap: wrap; }
+    .banner.ok { background: var(--app-surface-hover); color: var(--app-text); border: 1px solid var(--app-border); }
     .cloud-help { margin: 1rem 0; font-size: 0.9rem; color: var(--app-text-muted); }
     .cloud-help summary { cursor: pointer; font-weight: 500; color: inherit; margin-bottom: 0.5rem; }
     .cloud-help ol { margin: 0.5rem 0; padding-left: 1.25rem; }
-    .uri-box { display: block; background: #f4f4f4; padding: 0.6rem; border-radius: 6px; word-break: break-all; font-size: 0.8rem; margin: 0.5rem 0; }
+    .uri-box { display: block; background: var(--app-surface-hover); padding: 0.6rem; border-radius: 0.375rem; word-break: break-all; font-size: 0.8rem; margin: 0.5rem 0; border: 1px solid var(--app-border); }
     .hint { margin: 0.5rem 0 0; font-size: 0.85rem; }
-    .form-grid { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
-    .full { width: 100%; }
-    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-    .loading { display: flex; justify-content: center; padding: clamp(1.5rem, 5vw, 3rem); }
+    .form-grid { margin-top: 1rem; }
   `,
 })
 export class ConfiguracionComponent implements OnInit {

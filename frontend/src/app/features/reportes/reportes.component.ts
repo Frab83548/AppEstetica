@@ -73,14 +73,16 @@ import { SupabaseService } from '../../core/services/supabase.service';
         <mat-icon>search</mat-icon>
         Buscar
       </button>
-      <button mat-stroked-button type="button" [disabled]="rows().length === 0" (click)="exportPdf()">
-        <mat-icon>picture_as_pdf</mat-icon>
-        PDF
-      </button>
-      <button mat-stroked-button type="button" [disabled]="rows().length === 0" (click)="exportExcel()">
-        <mat-icon>table_chart</mat-icon>
-        Excel
-      </button>
+      <div class="filters-actions">
+        <button mat-stroked-button type="button" [disabled]="rows().length === 0" (click)="exportPdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          PDF
+        </button>
+        <button mat-stroked-button type="button" [disabled]="rows().length === 0" (click)="exportExcel()">
+          <mat-icon>table_chart</mat-icon>
+          Excel
+        </button>
+      </div>
     </form>
 
     @if (loading()) {

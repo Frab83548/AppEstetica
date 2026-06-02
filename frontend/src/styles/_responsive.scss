@@ -1,8 +1,10 @@
-// Mobile-first breakpoints: 320 | 480 | 768 | 1024 | 1280
-$bp-sm: 480px;
+// Mobile-first breakpoints (Tailwind-aligned)
+// xs: 0–639px | sm: 640px | md: 768px | lg: 1024px | xl: 1280px | 2xl: 1536px
+$bp-sm: 640px;
 $bp-md: 768px;
 $bp-lg: 1024px;
 $bp-xl: 1280px;
+$bp-2xl: 1536px;
 
 @mixin from-sm {
   @media (min-width: $bp-sm) {
@@ -28,6 +30,18 @@ $bp-xl: 1280px;
   }
 }
 
+@mixin from-2xl {
+  @media (min-width: $bp-2xl) {
+    @content;
+  }
+}
+
+@mixin until-sm {
+  @media (max-width: ($bp-sm - 1px)) {
+    @content;
+  }
+}
+
 @mixin until-md {
   @media (max-width: ($bp-md - 1px)) {
     @content;
@@ -42,23 +56,29 @@ $bp-xl: 1280px;
 
 :root {
   --page-padding: clamp(0.75rem, 3vw, 1.5rem);
+  --page-max-width: min(100%, 72rem);
   --text-base: clamp(0.9375rem, 2.5vw, 1rem);
   --text-h1: clamp(1.375rem, 4vw, 1.75rem);
   --text-h2: clamp(1.125rem, 3vw, 1.375rem);
   --text-h3: clamp(1rem, 2.5vw, 1.125rem);
-  --touch-min: 44px;
+  --touch-min: 2.75rem;
+  --dialog-max-width: min(35rem, 95vw);
+}
+
+@include from-2xl {
+  :root {
+    --page-max-width: min(100%, 80rem);
+  }
 }
 
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
 }
 
 body {
-  overflow-x: hidden;
   font-size: var(--text-base);
-  min-width: 320px;
+  min-width: 0;
 }
 
 img,
@@ -73,11 +93,23 @@ video {
 .mat-mdc-button-base.mat-mdc-icon-button {
   min-width: var(--touch-min);
   min-height: var(--touch-min);
-  padding: 10px;
+  padding: 0.625rem;
 }
 
 .mat-mdc-button-base:not(.mat-mdc-icon-button) {
   min-height: var(--touch-min);
+}
+
+.page-container {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: clamp(1.5rem, 5vw, 3rem);
 }
 
 .page-header {
@@ -129,6 +161,39 @@ video {
 
   @include from-md {
     width: auto;
+    justify-content: flex-end;
+  }
+
+  > button,
+  > a[mat-flat-button],
+  > a[mat-stroked-button],
+  > button[mat-flat-button],
+  > button[mat-stroked-button] {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: 0;
+
+    @include from-sm {
+      flex: 0 1 auto;
+      width: auto;
+    }
+  }
+}
+
+.btn-stack-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  > button,
+  > a[mat-flat-button],
+  > a[mat-stroked-button],
+  > button[mat-flat-button],
+  > button[mat-stroked-button] {
+    width: 100%;
+
+    @include from-sm {
+      width: auto;
+    }
   }
 }
 
@@ -177,25 +242,46 @@ video {
   }
 
   @include from-lg {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include from-xl {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .mat-mdc-form-field {
     width: 100%;
-
-    @include from-lg {
-      flex: 1 1 180px;
-      max-width: 220px;
-    }
+    min-width: 0;
   }
 
-  > button {
+  > button,
+  > a[mat-flat-button],
+  > a[mat-stroked-button] {
     width: 100%;
+    grid-column: 1 / -1;
 
     @include from-sm {
       width: auto;
+      grid-column: auto;
+    }
+  }
+
+  .filters-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    grid-column: 1 / -1;
+
+    > button,
+    > a[mat-flat-button],
+    > a[mat-stroked-button] {
+      flex: 1 1 calc(50% - 0.25rem);
+      min-width: 0;
+
+      @include from-sm {
+        flex: 0 1 auto;
+        width: auto;
+      }
     }
   }
 }
@@ -213,6 +299,54 @@ video {
   .full-width {
     grid-column: 1 / -1;
   }
+
+  .actions,
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    > button,
+    > a[mat-flat-button],
+    > a[mat-stroked-button] {
+      width: 100%;
+
+      @include from-sm {
+        width: auto;
+      }
+    }
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
+
+  .full {
+    grid-column: 1 / -1;
+  }
+
+  .actions,
+  .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    > button,
+    > a[mat-flat-button],
+    > a[mat-stroked-button] {
+      width: 100%;
+
+      @include from-sm {
+        width: auto;
+      }
+    }
+  }
 }
 
 .inline-form-responsive {
@@ -229,10 +363,11 @@ video {
 
   .mat-mdc-form-field {
     width: 100%;
+    min-width: 0;
 
     @include from-md {
-      flex: 1 1 140px;
-      max-width: 220px;
+      flex: 1 1 8.75rem;
+      max-width: 100%;
     }
   }
 
@@ -250,11 +385,11 @@ video {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--app-surface);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   border: 1px solid var(--app-border);
   max-width: 100%;
 
-  @include until-md {
+  @include until-lg {
     overflow-x: visible;
     background: transparent;
     border: none;
@@ -267,7 +402,7 @@ video {
   min-width: 0;
 }
 
-@include until-md {
+@include until-lg {
   .responsive-table {
     .mat-mdc-header-row {
       display: none;
@@ -277,7 +412,7 @@ video {
       display: block;
       margin-bottom: 0.75rem;
       border: 1px solid var(--app-border);
-      border-radius: 12px;
+      border-radius: 0.75rem;
       background: var(--app-surface);
       padding: 0.75rem;
     }
@@ -291,11 +426,13 @@ video {
       border-bottom: 1px solid var(--app-border);
       text-align: right;
       min-height: auto;
+      word-break: break-word;
 
       &:last-child {
         border-bottom: none;
         padding-top: 0.5rem !important;
         justify-content: flex-end;
+        flex-wrap: wrap;
       }
 
       &::before {
@@ -316,6 +453,13 @@ video {
           display: none;
         }
       }
+    }
+
+    .cell-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-end;
     }
   }
 }
@@ -385,11 +529,25 @@ video {
     align-items: center;
     flex-wrap: wrap;
   }
+
+  mat-chip {
+    align-self: flex-start;
+
+    @include from-md {
+      align-self: center;
+    }
+  }
+}
+
+.chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 .app-dialog-panel {
   .mat-mdc-dialog-container {
-    max-width: 95vw !important;
+    max-width: var(--dialog-max-width) !important;
     width: 100%;
   }
 
@@ -401,10 +559,17 @@ video {
     flex-wrap: wrap;
     gap: 0.5rem;
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+
+    @include until-md {
+      > button {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 0;
+      }
+    }
   }
 }
 
-@include until-md {
+@include until-lg {
   .mat-mdc-tab-header {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

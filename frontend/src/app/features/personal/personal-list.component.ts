@@ -47,11 +47,13 @@ import { SupabaseService } from '../../core/services/supabase.service';
           <ng-container matColumnDef="especialidades">
             <th mat-header-cell *matHeaderCellDef>Especialidades</th>
             <td mat-cell *matCellDef="let p" data-label="Especialidades">
+              <div class="chips-wrap">
               @for (e of p.especialidades; track e) {
                 <mat-chip>{{ e }}</mat-chip>
               } @empty {
                 <span class="muted">—</span>
               }
+              </div>
             </td>
           </ng-container>
 
@@ -69,8 +71,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .muted { color: var(--app-text-muted); }
-    mat-chip { margin: 2px; font-size: 0.75rem; }
+    .muted { color: var(--app-text-muted); word-break: break-word; }
+    mat-chip { font-size: 0.75rem; }
   `,
 })
 export class PersonalListComponent implements OnInit {

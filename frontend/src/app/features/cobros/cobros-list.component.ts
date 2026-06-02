@@ -52,7 +52,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="guardar()">Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.form-grid { display: grid; gap: 0.5rem; min-width: 0; width: 100%; } .full { grid-column: 1 / -1; }`,
+  styles: ``,
 })
 export class CobroFormDialogComponent {
   private readonly fb = inject(FormBuilder);
@@ -167,7 +167,7 @@ export class CobrosListComponent implements OnInit {
   }
 
   openForm(): void {
-    const ref = this.dialog.open(CobroFormDialogComponent, appDialogConfig({ width: '480px' }));
+    const ref = this.dialog.open(CobroFormDialogComponent, appDialogConfig());
     ref.afterClosed().subscribe(() => void this.load());
   }
 }

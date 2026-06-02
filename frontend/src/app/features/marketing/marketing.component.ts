@@ -63,7 +63,7 @@ interface Campana {
           <mat-label>Mensaje</mat-label>
           <textarea matInput rows="4" formControlName="mensaje"></textarea>
         </mat-form-field>
-        <div class="actions">
+        <div class="actions form-actions">
           <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="crear()">
             Guardar borrador
           </button>
@@ -113,7 +113,6 @@ interface Campana {
   styles: `
     .form-card { padding: clamp(1rem, 3vw, 1.25rem); margin-bottom: 1.5rem; max-width: 100%; }
     .form-card h3 { margin: 0 0 1rem; font-size: var(--text-h3); }
-    .actions { grid-column: 1 / -1; }
     .hint { margin: 1rem 0 0; font-size: 0.875rem; color: var(--app-text-muted); }
   `,
 })

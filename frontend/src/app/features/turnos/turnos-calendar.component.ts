@@ -73,9 +73,10 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
   `,
   styles: `
     .day-card {
-      min-height: 160px;
+      min-height: clamp(8rem, 20vw, 10rem);
       padding: 0;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .day-header {
@@ -92,6 +93,8 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
       display: flex;
       flex-direction: column;
       gap: 0.375rem;
+      flex: 1;
+      min-height: 0;
     }
 
     .turno-item {
@@ -113,8 +116,8 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
 
       .hora { font-weight: 600; font-size: 0.8125rem; }
       .cliente { font-size: 0.8125rem; word-break: break-word; }
-      .servicio { font-size: 0.75rem; color: var(--app-text-muted); }
-      .estado-chip { margin-top: 0.25rem; transform: scale(0.85); transform-origin: left; }
+      .servicio { font-size: 0.75rem; color: var(--app-text-muted); word-break: break-word; }
+      .estado-chip { margin-top: 0.25rem; font-size: 0.6875rem; height: auto; min-height: 1.5rem; }
     }
 
     .empty-day {
@@ -221,7 +224,6 @@ export class TurnosCalendarComponent implements OnInit {
 
   openForm(turno?: Turno): void {
     const ref = this.dialog.open(TurnoFormDialogComponent, appDialogConfig({
-      width: '560px',
       data: turno ?? null,
     }));
 
