@@ -171,7 +171,7 @@ interface DashboardStats {
     <h2 class="section-title">Turnos de hoy</h2>
 
     @if (loading()) {
-      <div class="loading"><mat-spinner /></div>
+      <div class="loading-center"><mat-spinner /></div>
     } @else if (turnos().length === 0) {
       <mat-card class="empty-card">
         <mat-icon>event_busy</mat-icon>
@@ -181,7 +181,7 @@ interface DashboardStats {
     } @else {
       <div class="turnos-list">
         @for (turno of turnos(); track turno.id) {
-          <mat-card class="turno-card">
+          <mat-card class="turno-card turno-card-responsive">
             <div class="turno-time"><strong>{{ getHora(turno) }}</strong></div>
             <div class="turno-info">
               <h3>{{ turno.cliente?.nombre }} {{ turno.cliente?.apellido }}</h3>
@@ -194,35 +194,28 @@ interface DashboardStats {
     }
   `,
   styles: `
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat-card, .chart-card { padding: 1.25rem; }
+    .stat-card, .chart-card { padding: clamp(1rem, 3vw, 1.25rem); }
     .stat-card { display: flex; align-items: center; gap: 1rem; }
     .stat-card.highlight mat-icon { color: #2e7d32; }
-    .stat-card mat-icon { color: var(--app-accent); font-size: 2rem; width: 2rem; height: 2rem; }
-    .stat-value { display: block; font-size: 1.5rem; font-weight: 600; }
-    .stat-label { color: var(--app-text-muted); font-size: 0.875rem; }
-    .chart-card h3 { margin: 0 0 0.75rem; font-size: 1rem; }
+    .stat-card mat-icon { color: var(--app-accent); font-size: clamp(1.5rem, 4vw, 2rem); width: clamp(1.5rem, 4vw, 2rem); height: clamp(1.5rem, 4vw, 2rem); flex-shrink: 0; }
+    .stat-value { display: block; font-size: clamp(1.125rem, 3.5vw, 1.5rem); font-weight: 600; word-break: break-word; }
+    .stat-label { color: var(--app-text-muted); font-size: clamp(0.75rem, 2vw, 0.875rem); }
+    .chart-card h3 { margin: 0 0 0.75rem; font-size: var(--text-h3); }
     .muted { color: var(--app-text-muted); margin: 0; }
-    .section-title { font-size: 1.125rem; margin: 0 0 1rem; }
-    .admin-card { margin-bottom: 1.5rem; padding: 1.25rem; }
-    .admin-card h3 { margin: 0 0 0.5rem; }
+    .section-title { font-size: var(--text-h2); margin: 0 0 1rem; }
+    .admin-card { margin-bottom: 1.5rem; padding: clamp(1rem, 3vw, 1.25rem); }
+    .admin-card h3 { margin: 0 0 0.5rem; font-size: var(--text-h3); }
     .admin-card p { margin: 0 0 1rem; color: var(--app-text-muted); }
-    .status-ok { display: flex; align-items: center; gap: 0.35rem; color: #2e7d32; }
+    .status-ok { display: flex; align-items: center; gap: 0.35rem; color: #2e7d32; flex-wrap: wrap; }
     .status-warn { color: #e65100; margin: 0 0 1rem; font-size: 0.9rem; }
     .status-ok mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
     .admin-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .loading { display: flex; justify-content: center; padding: 3rem; }
-    .empty-card { text-align: center; padding: 3rem; }
+    .empty-card { text-align: center; padding: clamp(1.5rem, 5vw, 3rem); }
     .turnos-list { display: flex; flex-direction: column; gap: 0.75rem; }
-    .turno-card { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem; flex-wrap: wrap; }
-    .turno-time { min-width: 60px; font-size: 1.125rem; }
-    .turno-info { flex: 1; }
-    .turno-info h3 { margin: 0; font-size: 1rem; font-weight: 500; }
-    .turno-info p { margin: 0.25rem 0 0; color: var(--app-text-muted); font-size: 0.875rem; }
+    .turno-time { font-size: clamp(1rem, 2.5vw, 1.125rem); }
+    .turno-info { flex: 1; min-width: 0; }
+    .turno-info h3 { margin: 0; font-size: 1rem; font-weight: 500; word-break: break-word; }
+    .turno-info p { margin: 0.25rem 0 0; color: var(--app-text-muted); font-size: 0.875rem; word-break: break-word; }
   `,
 })
 export class DashboardComponent implements OnInit {

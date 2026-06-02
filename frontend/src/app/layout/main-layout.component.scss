@@ -1,14 +1,17 @@
 :host {
   display: block;
-  height: 100vh;
+  height: 100dvh;
+  max-width: 100vw;
+  overflow: hidden;
 }
 
 .layout-container {
   height: 100%;
+  max-width: 100vw;
 }
 
 .layout-sidenav {
-  width: 260px;
+  width: min(280px, 88vw);
   border-right: 1px solid var(--app-border);
   background: var(--app-surface);
   display: flex;
@@ -20,8 +23,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 1rem;
+  padding: 1rem 0.875rem;
   border-bottom: 1px solid var(--app-border);
+  min-height: var(--touch-min);
 
   .brand-icon {
     color: var(--app-accent);
@@ -31,7 +35,7 @@
   }
 
   .brand-text {
-    font-size: 1.125rem;
+    font-size: clamp(1rem, 3vw, 1.125rem);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
@@ -39,11 +43,14 @@
 
 .nav-list {
   padding: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
 
   a {
     border-radius: 8px;
     margin-bottom: 2px;
     color: var(--app-text-muted);
+    min-height: var(--touch-min);
 
     &.active,
     &:hover {
@@ -60,13 +67,15 @@
 
 .sidenav-footer {
   margin-top: auto;
-  padding: 1rem;
+  padding: 0.75rem;
   border-top: 1px solid var(--app-border);
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 
   .theme-toggle {
     width: 100%;
     justify-content: flex-start;
     gap: 0.5rem;
+    min-height: var(--touch-min);
   }
 }
 
@@ -74,13 +83,16 @@
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
+  min-width: 0;
+  max-width: 100vw;
 }
 
 .layout-toolbar {
   background: var(--app-surface);
   border-bottom: 1px solid var(--app-border);
   color: var(--app-text);
-  min-height: 56px;
+  min-height: var(--touch-min);
+  padding-inline: max(0.25rem, env(safe-area-inset-left)) max(0.25rem, env(safe-area-inset-right));
 }
 
 .toolbar-spacer {
@@ -91,9 +103,10 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  min-height: var(--touch-min);
 
   .user-name {
-    max-width: 160px;
+    max-width: min(160px, 28vw);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -114,15 +127,20 @@
 .page-content {
   flex: 1;
   overflow: auto;
-  padding: 1.5rem;
+  overflow-x: hidden;
+  padding: var(--page-padding);
+  padding-bottom: max(var(--page-padding), env(safe-area-inset-bottom));
+  min-width: 0;
 }
 
-@media (max-width: 599px) {
-  .page-content {
-    padding: 1rem;
-  }
-
+@media (max-width: 767px) {
   .user-name {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-sidenav {
+    width: 260px;
   }
 }

@@ -53,7 +53,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <mat-tab-group>
         <mat-tab label="Horarios">
           <div class="tab-content">
-            <form [formGroup]="horarioForm" class="inline-form">
+            <form [formGroup]="horarioForm" class="inline-form-responsive">
               <mat-form-field appearance="outline">
                 <mat-label>Día</mat-label>
                 <mat-select formControlName="dia_semana">
@@ -73,18 +73,19 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <button mat-stroked-button type="button" (click)="addHorario()">Agregar</button>
             </form>
 
-            <table mat-table [dataSource]="horarios()" class="data-table">
+            <div class="table-container">
+            <table mat-table [dataSource]="horarios()" class="data-table responsive-table">
               <ng-container matColumnDef="dia">
                 <th mat-header-cell *matHeaderCellDef>Día</th>
-                <td mat-cell *matCellDef="let h">{{ dias[h.dia_semana] }}</td>
+                <td mat-cell *matCellDef="let h" data-label="Día">{{ dias[h.dia_semana] }}</td>
               </ng-container>
               <ng-container matColumnDef="horario">
                 <th mat-header-cell *matHeaderCellDef>Horario</th>
-                <td mat-cell *matCellDef="let h">{{ h.hora_inicio }} – {{ h.hora_fin }}</td>
+                <td mat-cell *matCellDef="let h" data-label="Horario">{{ h.hora_inicio }} – {{ h.hora_fin }}</td>
               </ng-container>
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let h">
+                <td mat-cell *matCellDef="let h" data-label="">
                   <button mat-icon-button color="warn" (click)="deleteHorario(h)">
                     <mat-icon>delete</mat-icon>
                   </button>
@@ -93,12 +94,13 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <tr mat-header-row *matHeaderRowDef="horarioColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: horarioColumns"></tr>
             </table>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Ausencias">
           <div class="tab-content">
-            <form [formGroup]="ausenciaForm" class="inline-form">
+            <form [formGroup]="ausenciaForm" class="inline-form-responsive">
               <mat-form-field appearance="outline">
                 <mat-label>Tipo</mat-label>
                 <mat-select formControlName="tipo">
@@ -122,25 +124,26 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <button mat-stroked-button type="button" (click)="addAusencia()">Registrar</button>
             </form>
 
-            <table mat-table [dataSource]="ausencias()" class="data-table">
+            <div class="table-container">
+            <table mat-table [dataSource]="ausencias()" class="data-table responsive-table">
               <ng-container matColumnDef="tipo">
                 <th mat-header-cell *matHeaderCellDef>Tipo</th>
-                <td mat-cell *matCellDef="let a">{{ tipoLabel(a.tipo) }}</td>
+                <td mat-cell *matCellDef="let a" data-label="Tipo">{{ tipoLabel(a.tipo) }}</td>
               </ng-container>
               <ng-container matColumnDef="periodo">
                 <th mat-header-cell *matHeaderCellDef>Período</th>
-                <td mat-cell *matCellDef="let a">
+                <td mat-cell *matCellDef="let a" data-label="Período">
                   {{ a.fecha_inicio | date: 'dd/MM/yyyy HH:mm' }} –
                   {{ a.fecha_fin | date: 'dd/MM/yyyy HH:mm' }}
                 </td>
               </ng-container>
               <ng-container matColumnDef="motivo">
                 <th mat-header-cell *matHeaderCellDef>Motivo</th>
-                <td mat-cell *matCellDef="let a">{{ a.motivo || '—' }}</td>
+                <td mat-cell *matCellDef="let a" data-label="Motivo">{{ a.motivo || '—' }}</td>
               </ng-container>
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let a">
+                <td mat-cell *matCellDef="let a" data-label="">
                   <button mat-icon-button color="warn" (click)="deleteAusencia(a)">
                     <mat-icon>delete</mat-icon>
                   </button>
@@ -149,14 +152,15 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <tr mat-header-row *matHeaderRowDef="ausenciaColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: ausenciaColumns"></tr>
             </table>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Google Calendar">
           <div class="tab-content">
             <p class="muted">ID del calendario donde se crean los turnos de este profesional. Usá <code>primary</code> o el email del calendario.</p>
-            <form [formGroup]="calendarForm" class="inline-form">
-              <mat-form-field appearance="outline" class="servicio-select">
+            <form [formGroup]="calendarForm" class="inline-form-responsive">
+              <mat-form-field appearance="outline" class="full-width-field">
                 <mat-label>Calendar ID</mat-label>
                 <input matInput formControlName="google_calendar_id" placeholder="primary" />
               </mat-form-field>
@@ -167,8 +171,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
         <mat-tab label="Servicios">
           <div class="tab-content">
-            <form [formGroup]="servicioForm" class="inline-form">
-              <mat-form-field appearance="outline" class="servicio-select">
+            <form [formGroup]="servicioForm" class="inline-form-responsive">
+              <mat-form-field appearance="outline" class="full-width-field">
                 <mat-label>Servicio</mat-label>
                 <mat-select formControlName="servicio_id">
                   @for (s of allServicios(); track s.id) {
@@ -195,14 +199,13 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .header h1 { margin: 0.5rem 0 0; font-size: 1.75rem; }
-    .muted { color: var(--app-text-muted); }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-    .tab-content { padding: 1.5rem 0; }
-    .inline-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-start; margin-bottom: 1rem; }
-    .servicio-select { min-width: 240px; }
-    .data-table { width: 100%; background: var(--app-surface); border-radius: 8px; }
+    .header h1 { margin: 0.5rem 0 0; font-size: var(--text-h1); }
+    .muted { color: var(--app-text-muted); word-break: break-word; }
+    .tab-content { padding: 1rem 0; }
+    .full-width-field { width: 100%; max-width: 100%; }
+    @media (min-width: 768px) { .full-width-field { max-width: 320px; } }
     .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    code { word-break: break-all; }
   `,
 })
 export class PersonalDetailComponent implements OnInit {

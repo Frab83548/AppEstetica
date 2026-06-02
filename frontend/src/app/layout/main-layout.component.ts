@@ -1,5 +1,5 @@
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Component, computed, inject, signal } from '@angular/core';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -9,7 +9,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { map, Subscription } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { USER_ROLE_LABELS } from '../core/models';
@@ -38,16 +38,33 @@ interface NavItem {
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnDestroy {
   private readonly breakpoint = inject(BreakpointObserver);
   private readonly auth = inject(AuthService);
+  private navSub?: Subscription;
   readonly theme = inject(ThemeService);
 
-  readonly sidenavOpen = signal(true);
-  readonly isHandset = toSignal(
-    this.breakpoint.observe([Breakpoints.Handset]).pipe(map((r) => r.matches)),
-    { initialValue: false },
+  readonly sidenavOpen = signal(false);
+  readonly isMobileNav = toSignal(
+    this.breakpoint.observe(['(max-width: 1023px)']).pipe(map((r) => r.matches)),
+    { initialValue: true },
   );
+
+  constructor() {
+    this.navSub = this.breakpoint
+      .observe(['(max-width: 1023px)', '(min-width: 1024px)'])
+      .subscribe((state) => {
+        if (state.breakpoints['(min-width: 1024px)']) {
+          this.sidenavOpen.set(true);
+        } else if (state.breakpoints['(max-width: 1023px)']) {
+          this.sidenavOpen.set(false);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.navSub?.unsubscribe();
+  }
 
   readonly navItems: NavItem[] = [
     { label: 'Panel', icon: 'dashboard', route: '/dashboard' },
@@ -78,7 +95,7 @@ export class MainLayoutComponent {
   }
 
   closeSidenavOnMobile(): void {
-    if (this.isHandset()) {
+    if (this.isMobileNav()) {
       this.sidenavOpen.set(false);
     }
   }

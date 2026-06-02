@@ -83,41 +83,43 @@ import { ThemeService } from '../../core/services/theme.service';
   `,
   styles: `
     .login-page {
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
       background: var(--app-bg);
       position: relative;
+      overflow-x: hidden;
     }
 
     .theme-btn {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
+      top: max(0.75rem, env(safe-area-inset-top));
+      right: max(0.75rem, env(safe-area-inset-right));
     }
 
     .login-card {
       width: 100%;
-      max-width: 400px;
-      padding: 2rem;
+      max-width: min(400px, 100%);
+      padding: clamp(1.25rem, 4vw, 2rem);
     }
 
     .login-header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
 
       .logo {
-        font-size: 2.5rem;
-        width: 2.5rem;
-        height: 2.5rem;
+        font-size: clamp(2rem, 6vw, 2.5rem);
+        width: clamp(2rem, 6vw, 2.5rem);
+        height: clamp(2rem, 6vw, 2.5rem);
         color: var(--app-accent);
       }
 
       h1 {
         margin: 0.5rem 0 0;
-        font-size: 1.5rem;
+        font-size: var(--text-h1);
         font-weight: 600;
       }
 
@@ -134,7 +136,7 @@ import { ThemeService } from '../../core/services/theme.service';
 
     .submit-btn {
       width: 100%;
-      height: 48px;
+      min-height: var(--touch-min);
       margin-top: 0.5rem;
     }
 

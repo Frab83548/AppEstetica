@@ -2,14 +2,14 @@
   <mat-sidenav
     #drawer
     class="layout-sidenav"
-    [mode]="isHandset() ? 'over' : 'side'"
+    [mode]="isMobileNav() ? 'over' : 'side'"
     [opened]="sidenavOpen()"
-    [fixedInViewport]="isHandset()"
+    [fixedInViewport]="isMobileNav()"
     fixedTopGap="0"
   >
     <div class="sidenav-brand">
       <mat-icon class="brand-icon">auto_awesome</mat-icon>
-      @if (sidenavOpen() || isHandset()) {
+      @if (sidenavOpen() || isMobileNav()) {
         <span class="brand-text">AppEstetica</span>
       }
     </div>

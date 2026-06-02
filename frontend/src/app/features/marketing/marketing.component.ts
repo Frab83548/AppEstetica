@@ -46,7 +46,7 @@ interface Campana {
 
     <mat-card class="form-card">
       <h3>Nueva campaña</h3>
-      <form [formGroup]="form" class="form-grid">
+      <form [formGroup]="form" class="form-grid-responsive">
         <mat-form-field appearance="outline">
           <mat-label>Título interno</mat-label>
           <input matInput formControlName="titulo" />
@@ -77,26 +77,27 @@ interface Campana {
     @if (loading()) {
       <div class="loading"><mat-spinner /></div>
     } @else {
-      <table mat-table [dataSource]="campanas()" class="data-table">
+      <div class="table-container">
+      <table mat-table [dataSource]="campanas()" class="data-table responsive-table">
         <ng-container matColumnDef="titulo">
           <th mat-header-cell *matHeaderCellDef>Título</th>
-          <td mat-cell *matCellDef="let c">{{ c.titulo }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Título">{{ c.titulo }}</td>
         </ng-container>
         <ng-container matColumnDef="segmento">
           <th mat-header-cell *matHeaderCellDef>Segmento</th>
-          <td mat-cell *matCellDef="let c">{{ c.segmento }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Segmento">{{ c.segmento }}</td>
         </ng-container>
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let c">{{ c.estado }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Estado">{{ c.estado }}</td>
         </ng-container>
         <ng-container matColumnDef="stats">
           <th mat-header-cell *matHeaderCellDef>Enviados / Fallidos</th>
-          <td mat-cell *matCellDef="let c">{{ c.enviados }} / {{ c.fallidos }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Enviados / Fallidos">{{ c.enviados }} / {{ c.fallidos }}</td>
         </ng-container>
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let c">
+          <td mat-cell *matCellDef="let c" data-label="">
             <button mat-stroked-button (click)="enviar(c)" [disabled]="c.estado === 'completada'">
               <mat-icon>send</mat-icon>
               Enviar
@@ -106,21 +107,14 @@ interface Campana {
         <tr mat-header-row *matHeaderRowDef="cols"></tr>
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
+      </div>
     }
   `,
   styles: `
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .form-card { padding: 1.25rem; margin-bottom: 1.5rem; }
-    .form-card h3 { margin: 0 0 1rem; }
-    .form-grid { display: grid; gap: 0.5rem; grid-template-columns: 1fr 1fr; }
-    .full { grid-column: 1 / -1; }
+    .form-card { padding: clamp(1rem, 3vw, 1.25rem); margin-bottom: 1.5rem; max-width: 100%; }
+    .form-card h3 { margin: 0 0 1rem; font-size: var(--text-h3); }
     .actions { grid-column: 1 / -1; }
     .hint { margin: 1rem 0 0; font-size: 0.875rem; color: var(--app-text-muted); }
-    .loading { display: flex; justify-content: center; padding: 3rem; }
-    .data-table { width: 100%; }
-    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
   `,
 })
 export class MarketingComponent implements OnInit {

@@ -26,7 +26,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
     <h2 mat-dialog-title>{{ isEdit ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
 
     <mat-dialog-content>
-      <form [formGroup]="form" class="form-grid">
+      <form [formGroup]="form" class="form-grid-responsive">
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input matInput formControlName="nombre" />
@@ -78,19 +78,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
     </mat-dialog-actions>
   `,
   styles: `
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 1rem;
-    }
-
-    .full-width { grid-column: 1 / -1; }
-
     .error { color: var(--app-error); font-size: 0.875rem; }
-
-    @media (max-width: 500px) {
-      .form-grid { grid-template-columns: 1fr; }
-    }
   `,
 })
 export class ClienteFormDialogComponent {

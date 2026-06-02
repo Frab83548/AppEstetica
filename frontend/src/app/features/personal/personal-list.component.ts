@@ -30,15 +30,15 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <div class="loading"><mat-spinner /></div>
     } @else {
       <div class="table-container">
-        <table mat-table [dataSource]="profesionales()" class="data-table">
+        <table mat-table [dataSource]="profesionales()" class="data-table responsive-table">
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Profesional</th>
-            <td mat-cell *matCellDef="let p">{{ p.nombre }} {{ p.apellido }}</td>
+            <td mat-cell *matCellDef="let p" data-label="Profesional">{{ p.nombre }} {{ p.apellido }}</td>
           </ng-container>
 
           <ng-container matColumnDef="contacto">
             <th mat-header-cell *matHeaderCellDef>Contacto</th>
-            <td mat-cell *matCellDef="let p">
+            <td mat-cell *matCellDef="let p" data-label="Contacto">
               {{ p.email || '—' }}<br />
               <small class="muted">{{ p.telefono || '' }}</small>
             </td>
@@ -46,7 +46,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
           <ng-container matColumnDef="especialidades">
             <th mat-header-cell *matHeaderCellDef>Especialidades</th>
-            <td mat-cell *matCellDef="let p">
+            <td mat-cell *matCellDef="let p" data-label="Especialidades">
               @for (e of p.especialidades; track e) {
                 <mat-chip>{{ e }}</mat-chip>
               } @empty {
@@ -57,7 +57,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let p">
+            <td mat-cell *matCellDef="let p" data-label="">
               <a mat-stroked-button [routerLink]="['/personal', p.id]">Ver detalle</a>
             </td>
           </ng-container>
@@ -69,11 +69,6 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .page-header h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-    .table-container { overflow-x: auto; background: var(--app-surface); border-radius: 12px; border: 1px solid var(--app-border); }
-    .data-table { width: 100%; }
     .muted { color: var(--app-text-muted); }
     mat-chip { margin: 2px; font-size: 0.75rem; }
   `,

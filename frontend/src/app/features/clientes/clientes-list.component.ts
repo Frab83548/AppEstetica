@@ -13,6 +13,7 @@ import { Cliente } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ClienteFormDialogComponent } from './cliente-form-dialog.component';
 import { ClienteHistorialDialogComponent } from './cliente-historial-dialog.component';
+import { appDialogConfig } from '../../core/constants/dialog.config';
 
 @Component({
   selector: 'app-clientes-list',
@@ -49,30 +50,30 @@ import { ClienteHistorialDialogComponent } from './cliente-historial-dialog.comp
       <div class="loading"><mat-spinner /></div>
     } @else {
       <div class="table-container">
-        <table mat-table [dataSource]="clientes()" class="data-table">
+        <table mat-table [dataSource]="clientes()" class="data-table responsive-table">
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let c">{{ c.nombre }} {{ c.apellido }}</td>
+            <td mat-cell *matCellDef="let c" data-label="Nombre">{{ c.nombre }} {{ c.apellido }}</td>
           </ng-container>
 
           <ng-container matColumnDef="dni">
             <th mat-header-cell *matHeaderCellDef>DNI</th>
-            <td mat-cell *matCellDef="let c">{{ c.dni || '—' }}</td>
+            <td mat-cell *matCellDef="let c" data-label="DNI">{{ c.dni || '—' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="telefono">
             <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-            <td mat-cell *matCellDef="let c">{{ c.telefono || '—' }}</td>
+            <td mat-cell *matCellDef="let c" data-label="Teléfono">{{ c.telefono || '—' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="email">
             <th mat-header-cell *matHeaderCellDef>Email</th>
-            <td mat-cell *matCellDef="let c">{{ c.email || '—' }}</td>
+            <td mat-cell *matCellDef="let c" data-label="Email">{{ c.email || '—' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let c">
+            <td mat-cell *matCellDef="let c" data-label="">
               <button mat-icon-button matTooltip="Historial" (click)="openHistorial(c)">
                 <mat-icon>history</mat-icon>
               </button>
@@ -90,29 +91,14 @@ import { ClienteHistorialDialogComponent } from './cliente-historial-dialog.comp
         </table>
 
         @if (clientes().length === 0) {
-          <p class="empty">No se encontraron clientes</p>
+          <p class="empty-state">No se encontraron clientes</p>
         }
       </div>
     }
   `,
   styles: `
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-
-      h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
-      .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    }
-
-    .search-field { width: 100%; max-width: 400px; margin-bottom: 1rem; }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-    .table-container { overflow-x: auto; background: var(--app-surface); border-radius: 12px; border: 1px solid var(--app-border); }
-    .data-table { width: 100%; }
-    .empty { text-align: center; padding: 2rem; color: var(--app-text-muted); }
+    .search-field { width: 100%; max-width: 100%; margin-bottom: 1rem; }
+    @media (min-width: 768px) { .search-field { max-width: 400px; } }
   `,
 })
 export class ClientesListComponent implements OnInit {
@@ -166,10 +152,10 @@ export class ClientesListComponent implements OnInit {
   }
 
   openForm(cliente?: Cliente): void {
-    const ref = this.dialog.open(ClienteFormDialogComponent, {
+    const ref = this.dialog.open(ClienteFormDialogComponent, appDialogConfig({
       width: '520px',
       data: cliente ?? null,
-    });
+    }));
 
     ref.afterClosed().subscribe((saved) => {
       if (saved) void this.load();
@@ -177,10 +163,10 @@ export class ClientesListComponent implements OnInit {
   }
 
   openHistorial(cliente: Cliente): void {
-    this.dialog.open(ClienteHistorialDialogComponent, {
+    this.dialog.open(ClienteHistorialDialogComponent, appDialogConfig({
       width: '480px',
       data: { clienteId: cliente.id },
-    });
+    }));
   }
 
   async softDelete(cliente: Cliente): Promise<void> {

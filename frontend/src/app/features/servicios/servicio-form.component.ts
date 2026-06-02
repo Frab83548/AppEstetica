@@ -43,7 +43,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
         <mat-card class="form-card">
           <mat-card-header><mat-card-title>Datos del servicio</mat-card-title></mat-card-header>
           <mat-card-content>
-            <form [formGroup]="form" class="form-grid">
+            <form [formGroup]="form" class="form-grid-responsive">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Nombre</mat-label>
                 <input matInput formControlName="nombre" />
@@ -84,7 +84,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
               <mat-card-title>Promociones</mat-card-title>
             </mat-card-header>
             <mat-card-content>
-              <form [formGroup]="promoForm" class="promo-form">
+              <form [formGroup]="promoForm" class="inline-form-responsive">
                 <mat-form-field appearance="outline">
                   <mat-label>Nombre</mat-label>
                   <input matInput formControlName="nombre" />
@@ -108,18 +108,19 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 </button>
               </form>
 
-              <table mat-table [dataSource]="promociones()" class="promo-table">
+              <div class="table-container">
+              <table mat-table [dataSource]="promociones()" class="data-table responsive-table">
                 <ng-container matColumnDef="nombre">
                   <th mat-header-cell *matHeaderCellDef>Nombre</th>
-                  <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+                  <td mat-cell *matCellDef="let p" data-label="Nombre">{{ p.nombre }}</td>
                 </ng-container>
                 <ng-container matColumnDef="tipo">
                   <th mat-header-cell *matHeaderCellDef>Tipo</th>
-                  <td mat-cell *matCellDef="let p">{{ p.tipo === 'porcentaje' ? '%' : '$' }}</td>
+                  <td mat-cell *matCellDef="let p" data-label="Tipo">{{ p.tipo === 'porcentaje' ? '%' : '$' }}</td>
                 </ng-container>
                 <ng-container matColumnDef="valor">
                   <th mat-header-cell *matHeaderCellDef>Valor</th>
-                  <td mat-cell *matCellDef="let p">
+                  <td mat-cell *matCellDef="let p" data-label="Valor">
                     @if (p.tipo === 'porcentaje') {
                       {{ p.valor }}%
                     } @else {
@@ -129,7 +130,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 </ng-container>
                 <ng-container matColumnDef="acciones">
                   <th mat-header-cell *matHeaderCellDef></th>
-                  <td mat-cell *matCellDef="let p">
+                  <td mat-cell *matCellDef="let p" data-label="">
                     <button mat-icon-button color="warn" (click)="deletePromocion(p)">
                       <mat-icon>delete</mat-icon>
                     </button>
@@ -138,6 +139,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 <tr mat-header-row *matHeaderRowDef="promoColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: promoColumns"></tr>
               </table>
+              </div>
             </mat-card-content>
           </mat-card>
         }
@@ -145,15 +147,10 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .page-header h1 { margin: 0.5rem 0 0; font-size: 1.75rem; font-weight: 600; }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-    .form-layout { display: flex; flex-direction: column; gap: 1.5rem; max-width: 720px; }
-    .form-grid { display: flex; flex-direction: column; gap: 0.5rem; }
-    .full-width { width: 100%; }
+    .form-layout { display: flex; flex-direction: column; gap: 1.5rem; max-width: 100%; }
+    @media (min-width: 768px) { .form-layout { max-width: 720px; } }
     .actions { margin-top: 1rem; }
     .error { color: var(--app-error); }
-    .promo-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: flex-start; margin-bottom: 1rem; }
-    .promo-table { width: 100%; }
   `,
 })
 export class ServicioFormComponent implements OnInit {

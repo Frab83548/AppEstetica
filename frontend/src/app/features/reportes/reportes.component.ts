@@ -38,7 +38,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
       </div>
     </div>
 
-    <form [formGroup]="form" class="filters">
+    <form [formGroup]="form" class="filters-row">
       <mat-form-field appearance="outline">
         <mat-label>Desde</mat-label>
         <input matInput [matDatepicker]="dp1" formControlName="desde" />
@@ -86,40 +86,35 @@ import { SupabaseService } from '../../core/services/supabase.service';
     @if (loading()) {
       <div class="loading"><mat-spinner /></div>
     } @else {
-      <table mat-table [dataSource]="rows()" class="data-table">
+      <div class="table-container">
+      <table mat-table [dataSource]="rows()" class="data-table responsive-table">
         <ng-container matColumnDef="fecha">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
-          <td mat-cell *matCellDef="let r">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td mat-cell *matCellDef="let r" data-label="Fecha">{{ r.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
         </ng-container>
         <ng-container matColumnDef="cliente">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let r">{{ r.cliente }}</td>
+          <td mat-cell *matCellDef="let r" data-label="Cliente">{{ r.cliente }}</td>
         </ng-container>
         <ng-container matColumnDef="profesional">
           <th mat-header-cell *matHeaderCellDef>Profesional</th>
-          <td mat-cell *matCellDef="let r">{{ r.profesional }}</td>
+          <td mat-cell *matCellDef="let r" data-label="Profesional">{{ r.profesional }}</td>
         </ng-container>
         <ng-container matColumnDef="servicio">
           <th mat-header-cell *matHeaderCellDef>Servicio</th>
-          <td mat-cell *matCellDef="let r">{{ r.servicio }}</td>
+          <td mat-cell *matCellDef="let r" data-label="Servicio">{{ r.servicio }}</td>
         </ng-container>
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let r">{{ estadoLabel(r.estado) }}</td>
+          <td mat-cell *matCellDef="let r" data-label="Estado">{{ estadoLabel(r.estado) }}</td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="cols"></tr>
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
+      </div>
     }
   `,
-  styles: `
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; margin-bottom: 1.5rem; }
-    .loading { display: flex; justify-content: center; padding: 3rem; }
-    .data-table { width: 100%; }
-  `,
+  styles: ``,
 })
 export class ReportesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

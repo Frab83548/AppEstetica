@@ -11,6 +11,7 @@ import { es } from 'date-fns/locale';
 import { AuthService } from '../../core/services/auth.service';
 import { parseRango, TURNO_ESTADO_LABELS, Turno } from '../../core/models';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { appDialogConfig } from '../../core/constants/dialog.config';
 import { TurnoFormDialogComponent } from './turno-form-dialog.component';
 
 @Component({
@@ -71,40 +72,8 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
     }
   `,
   styles: `
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-      h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
-      .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    }
-
-    .calendar-nav {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-
-      .week-label {
-        font-weight: 500;
-        min-width: 200px;
-        text-align: center;
-      }
-    }
-
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 0.75rem;
-    }
-
     .day-card {
-      min-height: 200px;
+      min-height: 160px;
       padding: 0;
       overflow: hidden;
     }
@@ -131,7 +100,8 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
       align-items: flex-start;
       text-align: left;
       width: 100%;
-      padding: 0.5rem 0.625rem;
+      min-height: var(--touch-min);
+      padding: 0.625rem;
       border: 1px solid var(--app-border);
       border-radius: 8px;
       background: var(--app-surface-hover);
@@ -142,7 +112,7 @@ import { TurnoFormDialogComponent } from './turno-form-dialog.component';
       &:hover { border-color: var(--app-accent); }
 
       .hora { font-weight: 600; font-size: 0.8125rem; }
-      .cliente { font-size: 0.8125rem; }
+      .cliente { font-size: 0.8125rem; word-break: break-word; }
       .servicio { font-size: 0.75rem; color: var(--app-text-muted); }
       .estado-chip { margin-top: 0.25rem; transform: scale(0.85); transform-origin: left; }
     }
@@ -250,10 +220,10 @@ export class TurnosCalendarComponent implements OnInit {
   }
 
   openForm(turno?: Turno): void {
-    const ref = this.dialog.open(TurnoFormDialogComponent, {
+    const ref = this.dialog.open(TurnoFormDialogComponent, appDialogConfig({
       width: '560px',
       data: turno ?? null,
-    });
+    }));
 
     ref.afterClosed().subscribe((saved) => {
       if (saved) void this.loadTurnos();

@@ -38,10 +38,10 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <div class="loading"><mat-spinner /></div>
     } @else {
       <div class="table-container">
-        <table mat-table [dataSource]="servicios()" class="data-table">
+        <table mat-table [dataSource]="servicios()" class="data-table responsive-table">
           <ng-container matColumnDef="nombre">
             <th mat-header-cell *matHeaderCellDef>Servicio</th>
-            <td mat-cell *matCellDef="let s">
+            <td mat-cell *matCellDef="let s" data-label="Servicio">
               <strong>{{ s.nombre }}</strong>
               @if (s.descripcion) {
                 <br /><small class="muted">{{ s.descripcion }}</small>
@@ -51,17 +51,17 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
           <ng-container matColumnDef="duracion">
             <th mat-header-cell *matHeaderCellDef>Duración</th>
-            <td mat-cell *matCellDef="let s">{{ s.duracion_min }} min</td>
+            <td mat-cell *matCellDef="let s" data-label="Duración">{{ s.duracion_min }} min</td>
           </ng-container>
 
           <ng-container matColumnDef="precio">
             <th mat-header-cell *matHeaderCellDef>Precio</th>
-            <td mat-cell *matCellDef="let s">{{ s.precio | currency: 'ARS' : 'symbol' : '1.0-0' }}</td>
+            <td mat-cell *matCellDef="let s" data-label="Precio">{{ s.precio | currency: 'ARS' : 'symbol' : '1.0-0' }}</td>
           </ng-container>
 
           <ng-container matColumnDef="promociones">
             <th mat-header-cell *matHeaderCellDef>Promociones</th>
-            <td mat-cell *matCellDef="let s">
+            <td mat-cell *matCellDef="let s" data-label="Promociones">
               @for (p of promosFor(s.id); track p.id) {
                 <mat-chip>{{ p.nombre }}</mat-chip>
               } @empty {
@@ -72,7 +72,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let s">
+            <td mat-cell *matCellDef="let s" data-label="">
               <button mat-icon-button matTooltip="Editar" [routerLink]="['/servicios', s.id]">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -89,19 +89,6 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-      h1 { margin: 0; font-size: 1.75rem; font-weight: 600; }
-      .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    }
-    .loading { display: flex; justify-content: center; padding: 2rem; }
-    .table-container { overflow-x: auto; background: var(--app-surface); border-radius: 12px; border: 1px solid var(--app-border); }
-    .data-table { width: 100%; }
     .muted { color: var(--app-text-muted); font-size: 0.8125rem; }
     mat-chip { margin: 2px; font-size: 0.75rem; }
   `,

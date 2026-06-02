@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { Cliente, Cobro } from '../../core/models';
+import { appDialogConfig } from '../../core/constants/dialog.config';
 import { SupabaseService } from '../../core/services/supabase.service';
 
 @Component({
@@ -51,7 +52,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
       <button mat-flat-button color="primary" [disabled]="form.invalid || saving()" (click)="guardar()">Guardar</button>
     </mat-dialog-actions>
   `,
-  styles: `.form-grid { display: grid; gap: 0.5rem; min-width: 320px; } .full { grid-column: 1 / -1; }`,
+  styles: `.form-grid { display: grid; gap: 0.5rem; min-width: 0; width: 100%; } .full { grid-column: 1 / -1; }`,
 })
 export class CobroFormDialogComponent {
   private readonly fb = inject(FormBuilder);
@@ -117,35 +118,31 @@ export class CobroFormDialogComponent {
     @if (loading()) {
       <div class="loading"><mat-spinner /></div>
     } @else {
-      <table mat-table [dataSource]="cobros()" class="data-table">
+      <div class="table-container">
+      <table mat-table [dataSource]="cobros()" class="data-table responsive-table">
         <ng-container matColumnDef="fecha">
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
-          <td mat-cell *matCellDef="let c">{{ c.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Fecha">{{ c.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
         </ng-container>
         <ng-container matColumnDef="cliente">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let c">{{ c.cliente?.nombre }} {{ c.cliente?.apellido }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Cliente">{{ c.cliente?.nombre }} {{ c.cliente?.apellido }}</td>
         </ng-container>
         <ng-container matColumnDef="monto">
           <th mat-header-cell *matHeaderCellDef>Monto</th>
-          <td mat-cell *matCellDef="let c">{{ c.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Monto">{{ c.monto | currency:'ARS':'symbol-narrow':'1.0-0' }}</td>
         </ng-container>
         <ng-container matColumnDef="medio">
           <th mat-header-cell *matHeaderCellDef>Medio</th>
-          <td mat-cell *matCellDef="let c">{{ c.medio || '—' }}</td>
+          <td mat-cell *matCellDef="let c" data-label="Medio">{{ c.medio || '—' }}</td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="cols"></tr>
         <tr mat-row *matRowDef="let row; columns: cols"></tr>
       </table>
+      </div>
     }
   `,
-  styles: `
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-    .page-header h1 { margin: 0; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .loading { display: flex; justify-content: center; padding: 3rem; }
-    .data-table { width: 100%; }
-  `,
+  styles: ``,
 })
 export class CobrosListComponent implements OnInit {
   private readonly supabase = inject(SupabaseService);
@@ -170,7 +167,7 @@ export class CobrosListComponent implements OnInit {
   }
 
   openForm(): void {
-    const ref = this.dialog.open(CobroFormDialogComponent, { width: '480px' });
+    const ref = this.dialog.open(CobroFormDialogComponent, appDialogConfig({ width: '480px' }));
     ref.afterClosed().subscribe(() => void this.load());
   }
 }

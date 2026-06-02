@@ -125,11 +125,9 @@ import { SupabaseService } from '../../core/services/supabase.service';
     }
   `,
   styles: `
-    .page-header { margin-bottom: 1.5rem; }
-    .page-header h1 { margin: 0; }
-    .subtitle { margin: 0.25rem 0 0; color: var(--app-text-muted); }
-    .config-card { padding: 1.25rem; max-width: 720px; margin-bottom: 1.5rem; }
-    .config-card h3 { margin: 0 0 0.75rem; }
+    .config-card { padding: clamp(1rem, 3vw, 1.25rem); max-width: 100%; margin-bottom: 1.5rem; }
+    @media (min-width: 768px) { .config-card { max-width: 720px; } }
+    .config-card h3 { margin: 0 0 0.75rem; font-size: var(--text-h3); }
     .gcal-card { border-left: 4px solid var(--app-accent); }
     .checklist mat-icon { color: var(--app-text-muted); }
     .checklist mat-icon.done { color: #2e7d32; }
@@ -143,7 +141,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
     .form-grid { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
     .full { width: 100%; }
     .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
-    .loading { display: flex; justify-content: center; padding: 3rem; }
+    .loading { display: flex; justify-content: center; padding: clamp(1.5rem, 5vw, 3rem); }
   `,
 })
 export class ConfiguracionComponent implements OnInit {
