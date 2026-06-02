@@ -56,6 +56,7 @@ $bp-2xl: 1536px;
 
 :root {
   --page-padding: clamp(0.75rem, 3vw, 1.5rem);
+  --layout-inline-padding: var(--page-padding);
   --page-max-width: min(100%, 72rem);
   --text-base: clamp(0.9375rem, 2.5vw, 1rem);
   --text-h1: clamp(1.375rem, 4vw, 1.75rem);
@@ -118,13 +119,19 @@ video {
   align-items: stretch;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+  width: 100%;
 
   @include from-md {
     flex-direction: row;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
+  }
+
+  > div:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   h1 {
@@ -145,10 +152,12 @@ video {
   > a[mat-stroked-button],
   > button[mat-stroked-button] {
     width: 100%;
+    align-self: stretch;
 
     @include from-md {
       width: auto;
-      flex-shrink: 0;
+      flex: 0 0 auto;
+      align-self: center;
     }
   }
 }
@@ -203,7 +212,7 @@ video {
   gap: 0.75rem;
   margin-bottom: 1.25rem;
 
-  @include from-sm {
+  @include from-md {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -220,7 +229,7 @@ video {
   gap: 0.75rem;
   margin-bottom: 1.25rem;
 
-  @include from-md {
+  @include from-lg {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -404,36 +413,59 @@ video {
 
 @include until-lg {
   .responsive-table {
-    .mat-mdc-header-row {
-      display: none;
+    display: block !important;
+    width: 100% !important;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    thead,
+    tbody,
+    tfoot,
+    tr[mat-header-row],
+    tr[mat-row],
+    tr[mat-footer-row],
+    .mat-mdc-header-row,
+    .mat-mdc-row,
+    .mat-mdc-footer-row {
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
     }
 
+    tr[mat-header-row],
+    .mat-mdc-header-row {
+      display: none !important;
+    }
+
+    tr[mat-row],
     .mat-mdc-row {
-      display: block;
       margin-bottom: 0.75rem;
       border: 1px solid var(--app-border);
       border-radius: 0.75rem;
       background: var(--app-surface);
       padding: 0.75rem;
+      box-sizing: border-box;
     }
 
-    .mat-mdc-cell {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 0.75rem;
-      padding: 0.45rem 0 !important;
-      border-bottom: 1px solid var(--app-border);
+    td[mat-cell],
+    th[mat-header-cell],
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      display: grid !important;
+      grid-template-columns: minmax(38%, 42%) 1fr;
+      column-gap: 0.75rem;
+      row-gap: 0.25rem;
+      align-items: start !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      min-height: 0 !important;
+      padding: 0.5rem 0 !important;
+      border: none !important;
+      border-bottom: 1px solid var(--app-border) !important;
       text-align: right;
-      min-height: auto;
       word-break: break-word;
-
-      &:last-child {
-        border-bottom: none;
-        padding-top: 0.5rem !important;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-      }
+      box-sizing: border-box;
 
       &::before {
         content: attr(data-label);
@@ -443,15 +475,43 @@ video {
         letter-spacing: 0.04em;
         color: var(--app-text-muted);
         text-align: left;
-        flex: 0 0 38%;
-        max-width: 45%;
+        line-height: 1.4;
+        padding-top: 0.125rem;
+        grid-column: 1;
+        grid-row: 1 / -1;
+        align-self: start;
       }
 
-      &[data-label=''],
-      &:not([data-label]) {
-        &::before {
-          display: none;
-        }
+      &[data-label='']::before,
+      &:not([data-label])::before {
+        display: none !important;
+        content: none;
+      }
+
+      > * {
+        grid-column: 2;
+        justify-self: end;
+        text-align: right;
+        min-width: 0;
+        max-width: 100%;
+      }
+    }
+
+    td[mat-cell]:last-child,
+    .mat-mdc-cell:last-child {
+      display: flex !important;
+      flex-wrap: wrap;
+      justify-content: flex-end !important;
+      border-bottom: none !important;
+      padding-top: 0.625rem !important;
+
+      &::before {
+        display: none !important;
+      }
+
+      > * {
+        grid-column: unset;
+        justify-self: unset;
       }
     }
 
@@ -459,6 +519,13 @@ video {
       display: flex;
       flex-wrap: wrap;
       gap: 0.25rem;
+      justify-content: flex-end;
+      margin-left: auto;
+    }
+
+    .chips-wrap {
+      flex: 1 1 auto;
+      min-width: 0;
       justify-content: flex-end;
     }
   }
