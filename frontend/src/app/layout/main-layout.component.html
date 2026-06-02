@@ -1,0 +1,73 @@
+<mat-sidenav-container class="layout-container">
+  <mat-sidenav
+    #drawer
+    class="layout-sidenav"
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="sidenavOpen()"
+    [fixedInViewport]="isHandset()"
+    fixedTopGap="0"
+  >
+    <div class="sidenav-brand">
+      <mat-icon class="brand-icon">auto_awesome</mat-icon>
+      @if (sidenavOpen() || isHandset()) {
+        <span class="brand-text">AppEstetica</span>
+      }
+    </div>
+
+    <mat-nav-list class="nav-list">
+      @for (item of visibleNav(); track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          (click)="closeSidenavOnMobile()"
+        >
+          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <button mat-button class="theme-toggle" (click)="theme.toggle()">
+        <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        <span>{{ theme.isDark() ? 'Modo claro' : 'Modo oscuro' }}</span>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="layout-content">
+    <mat-toolbar class="layout-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()" aria-label="Menú">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="toolbar-spacer"></span>
+
+      <button mat-icon-button (click)="theme.toggle()" matTooltip="Cambiar tema">
+        <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
+        <mat-icon>account_circle</mat-icon>
+        <span class="user-name">{{ fullName() }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <div class="menu-user-info" mat-menu-item disabled>
+          <strong>{{ fullName() }}</strong>
+          <small>{{ roleLabel() }}</small>
+        </div>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
