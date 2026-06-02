@@ -57,28 +57,28 @@ interface DashboardStats {
     <div class="stats-grid">
       <mat-card class="stat-card">
         <mat-icon>event</mat-icon>
-        <div>
+        <div class="stat-body">
           <span class="stat-value">{{ turnos().length }}</span>
           <span class="stat-label">Turnos hoy</span>
         </div>
       </mat-card>
       <mat-card class="stat-card highlight">
         <mat-icon>payments</mat-icon>
-        <div>
+        <div class="stat-body">
           <span class="stat-value">{{ stats()?.facturacion_mes | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
           <span class="stat-label">Facturación del mes</span>
         </div>
       </mat-card>
       <mat-card class="stat-card">
         <mat-icon>pie_chart</mat-icon>
-        <div>
+        <div class="stat-body">
           <span class="stat-value">{{ stats()?.ocupacion_pct ?? 0 }}%</span>
           <span class="stat-label">Ocupación</span>
         </div>
       </mat-card>
       <mat-card class="stat-card">
         <mat-icon>cancel</mat-icon>
-        <div>
+        <div class="stat-body">
           <span class="stat-value">{{ stats()?.cancelaciones ?? 0 }}</span>
           <span class="stat-label">Cancelaciones (mes)</span>
         </div>
@@ -195,11 +195,44 @@ interface DashboardStats {
   `,
   styles: `
     .stat-card, .chart-card { padding: clamp(1rem, 3vw, 1.25rem); }
-    .stat-card { display: flex; align-items: center; gap: 1rem; }
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.625rem;
+    }
     .stat-card.highlight mat-icon { color: #2e7d32; }
-    .stat-card mat-icon { color: var(--app-accent); font-size: clamp(1.5rem, 4vw, 2rem); width: clamp(1.5rem, 4vw, 2rem); height: clamp(1.5rem, 4vw, 2rem); flex-shrink: 0; }
-    .stat-value { display: block; font-size: clamp(1.125rem, 3.5vw, 1.5rem); font-weight: 600; word-break: break-word; }
-    .stat-label { color: var(--app-text-muted); font-size: clamp(0.75rem, 2vw, 0.875rem); }
+    .stat-card mat-icon {
+      color: var(--app-accent);
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      width: clamp(1.5rem, 4vw, 2rem);
+      height: clamp(1.5rem, 4vw, 2rem);
+      flex-shrink: 0;
+    }
+    .stat-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      width: 100%;
+      min-width: 0;
+    }
+    .stat-value {
+      display: block;
+      font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+      font-weight: 600;
+      word-break: break-word;
+      line-height: 1.2;
+      width: 100%;
+    }
+    .stat-label {
+      color: var(--app-text-muted);
+      font-size: clamp(0.75rem, 2vw, 0.875rem);
+      line-height: 1.3;
+      width: 100%;
+    }
     .chart-card h3 { margin: 0 0 0.75rem; font-size: var(--text-h3); }
     .muted { color: var(--app-text-muted); margin: 0; }
     .section-title { font-size: var(--text-h2); margin: 0 0 1rem; }
