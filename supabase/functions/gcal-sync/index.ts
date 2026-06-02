@@ -8,13 +8,27 @@ const supabase = createClient(
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')!;
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')!;
 
+async function getGoogleCredentials() {
+  if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+    return { clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET };
+  }
+  const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'google_oauth').maybeSingle();
+  const stored = data?.valor as { client_id?: string; client_secret?: string } | null;
+  return {
+    clientId: stored?.client_id,
+    clientSecret: stored?.client_secret,
+  };
+}
+
 async function refreshAccessToken(refreshToken: string) {
+  const { clientId, clientSecret } = await getGoogleCredentials();
+  if (!clientId || !clientSecret) throw new Error('Google OAuth no configurado');
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       refresh_token: refreshToken,
       grant_type: 'refresh_token',
     }),

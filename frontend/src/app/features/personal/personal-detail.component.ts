@@ -152,6 +152,19 @@ import { SupabaseService } from '../../core/services/supabase.service';
           </div>
         </mat-tab>
 
+        <mat-tab label="Google Calendar">
+          <div class="tab-content">
+            <p class="muted">ID del calendario donde se crean los turnos de este profesional. Usá <code>primary</code> o el email del calendario.</p>
+            <form [formGroup]="calendarForm" class="inline-form">
+              <mat-form-field appearance="outline" class="servicio-select">
+                <mat-label>Calendar ID</mat-label>
+                <input matInput formControlName="google_calendar_id" placeholder="primary" />
+              </mat-form-field>
+              <button mat-stroked-button type="button" (click)="saveCalendarId()">Guardar</button>
+            </form>
+          </div>
+        </mat-tab>
+
         <mat-tab label="Servicios">
           <div class="tab-content">
             <form [formGroup]="servicioForm" class="inline-form">
@@ -227,6 +240,10 @@ export class PersonalDetailComponent implements OnInit {
     servicio_id: ['', Validators.required],
   });
 
+  readonly calendarForm = this.fb.nonNullable.group({
+    google_calendar_id: [''],
+  });
+
   ngOnInit(): void {
     this.profesionalId = this.route.snapshot.paramMap.get('id')!;
     void this.load();
@@ -242,6 +259,9 @@ export class PersonalDetailComponent implements OnInit {
     ]);
 
     this.profesional.set(profRes.data as Profesional);
+    this.calendarForm.patchValue({
+      google_calendar_id: (profRes.data as Profesional).google_calendar_id ?? 'primary',
+    });
     this.horarios.set((horRes.data ?? []) as HorarioLaboral[]);
     this.ausencias.set((ausRes.data ?? []) as Ausencia[]);
 
@@ -326,6 +346,21 @@ export class PersonalDetailComponent implements OnInit {
       .delete()
       .eq('servicio_id', servicioId)
       .eq('profesional_id', this.profesionalId);
+
+    void this.load();
+  }
+
+  async saveCalendarId(): Promise<void> {
+    const google_calendar_id = this.calendarForm.value.google_calendar_id?.trim() || null;
+    const { error } = await this.supabase.client
+      .from('profesionales')
+      .update({ google_calendar_id })
+      .eq('id', this.profesionalId);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     void this.load();
   }

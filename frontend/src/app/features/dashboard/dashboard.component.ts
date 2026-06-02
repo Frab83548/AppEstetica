@@ -137,12 +137,34 @@ interface DashboardStats {
 
     @if (auth.isAdmin()) {
       <mat-card class="admin-card">
-        <h3>Integraciones</h3>
-        <p>Conectá Google Calendar para sincronizar turnos confirmados.</p>
-        <a mat-stroked-button [href]="gcal.getOAuthUrl()" target="_blank" rel="noopener">
-          <mat-icon>calendar_month</mat-icon>
-          Conectar Google Calendar
-        </a>
+        <h3>Integraciones · Google Calendar</h3>
+        @if (gcalConnected()) {
+          <p class="status-ok"><mat-icon>check_circle</mat-icon> Google Calendar conectado.</p>
+          @if (!gcalProfesionalesOk()) {
+            <p class="status-warn">Falta Calendar ID en algún profesional → <a routerLink="/personal">Personal</a></p>
+          } @else {
+            <p class="muted">Los turnos se sincronizan al calendario de cada profesional.</p>
+          }
+          <div class="admin-actions">
+            <a mat-stroked-button routerLink="/configuracion">Ver configuración</a>
+            <button mat-stroked-button (click)="desconectarGcal()">Desconectar</button>
+          </div>
+        } @else if (!gcalConfigured()) {
+          <p>Primero cargá las credenciales OAuth en <a routerLink="/configuracion">Configuración</a>.</p>
+          <a mat-stroked-button routerLink="/configuracion">
+            <mat-icon>settings</mat-icon>
+            Ir a Configuración
+          </a>
+        } @else {
+          <p>Credenciales listas. Autorizá la cuenta Google del negocio (paso 2).</p>
+          <div class="admin-actions">
+            <a mat-flat-button color="primary" [href]="gcal.getOAuthUrl()" target="_blank" rel="noopener">
+              <mat-icon>calendar_month</mat-icon>
+              Conectar Google Calendar
+            </a>
+            <a mat-stroked-button routerLink="/configuracion">Guía completa</a>
+          </div>
+        }
       </mat-card>
     }
 
@@ -189,6 +211,10 @@ interface DashboardStats {
     .admin-card { margin-bottom: 1.5rem; padding: 1.25rem; }
     .admin-card h3 { margin: 0 0 0.5rem; }
     .admin-card p { margin: 0 0 1rem; color: var(--app-text-muted); }
+    .status-ok { display: flex; align-items: center; gap: 0.35rem; color: #2e7d32; }
+    .status-warn { color: #e65100; margin: 0 0 1rem; font-size: 0.9rem; }
+    .status-ok mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+    .admin-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
     .loading { display: flex; justify-content: center; padding: 3rem; }
     .empty-card { text-align: center; padding: 3rem; }
     .turnos-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -207,10 +233,28 @@ export class DashboardComponent implements OnInit {
   readonly loading = signal(true);
   readonly turnos = signal<Turno[]>([]);
   readonly stats = signal<DashboardStats | null>(null);
+  readonly gcalConnected = signal(false);
+  readonly gcalConfigured = signal(false);
+  readonly gcalProfesionalesOk = signal(false);
   readonly todayLabel = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
 
   ngOnInit(): void {
     void this.load();
+    if (this.auth.isAdmin()) void this.loadGcalStatus();
+  }
+
+  private async loadGcalStatus(): Promise<void> {
+    const status = await this.gcal.getSetupStatus();
+    this.gcalConnected.set(status.accountConnected);
+    this.gcalConfigured.set(status.credentialsConfigured);
+    this.gcalProfesionalesOk.set(
+      status.professionalsTotal > 0 && status.professionalsWithCalendar === status.professionalsTotal,
+    );
+  }
+
+  async desconectarGcal(): Promise<void> {
+    await this.gcal.disconnect();
+    this.gcalConnected.set(false);
   }
 
   private async load(): Promise<void> {

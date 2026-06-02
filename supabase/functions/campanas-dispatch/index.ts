@@ -5,10 +5,18 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
-const TELEGRAM_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
+async function getTelegramToken(): Promise<string> {
+  const fromEnv = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  if (fromEnv) return fromEnv;
+  const { data } = await supabase.from('configuracion').select('valor').eq('clave', 'edge_telegram_bot_token').maybeSingle();
+  const token = (data?.valor as { value?: string } | null)?.value;
+  if (!token) throw new Error('TELEGRAM_BOT_TOKEN not configured');
+  return token;
+}
 
 async function sendTelegram(telegramId: number, text: string) {
-  const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+  const token = await getTelegramToken();
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: telegramId, text }),
